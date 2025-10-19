@@ -329,7 +329,7 @@ async function main() {
         userId: ticketData.userId,
         quantity: ticketData.quantity,
         status: ticketData.status as any,
-        totalPrice: ticketData.quantity * (await prisma.event.findUnique({ where: { id: ticketData.eventId } }))?.price || 0,
+        totalPrice: ticketData.quantity * ((await prisma.event.findUnique({ where: { id: ticketData.eventId } }))?.price || 0),
       },
     });
   }
