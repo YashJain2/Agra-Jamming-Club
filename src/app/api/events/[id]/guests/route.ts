@@ -21,8 +21,7 @@ export async function GET(
     const { id: eventId } = await params;
 
     // Check if user has permission to view guest list
-    const hasPermission = await requireModerator(session);
-    if (!hasPermission) {
+    if (!['MODERATOR', 'ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
