@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Tickets retrieval error:', error);
     return NextResponse.json(
-      { error: 'Tickets retrieval failed', details: error.message },
+      { error: 'Tickets retrieval failed', details: (error as Error).message },
       { status: 500 }
     );
   }

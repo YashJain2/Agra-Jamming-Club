@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle, Calendar, MapPin, Clock, Ticket, Crown, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
 
-export default function TicketSuccessPage() {
+function TicketSuccessContent() {
   const searchParams = useSearchParams();
   const [ticketData, setTicketData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -191,5 +191,20 @@ export default function TicketSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TicketSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading ticket details...</p>
+        </div>
+      </div>
+    }>
+      <TicketSuccessContent />
+    </Suspense>
   );
 }

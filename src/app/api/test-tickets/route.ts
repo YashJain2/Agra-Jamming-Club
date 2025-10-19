@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Tickets test error:', error);
     return NextResponse.json(
-      { error: 'Tickets test failed', details: error.message },
+      { error: 'Tickets test failed', details: (error as Error).message },
       { status: 500 }
     );
   }

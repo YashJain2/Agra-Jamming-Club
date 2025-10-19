@@ -54,14 +54,14 @@ export async function GET(request: NextRequest) {
 
     // Format tickets for verification
     const verificationTickets = tickets.map((ticket) => {
-      const isGuestTicket = ticket.isGuestTicket ?? false;
+      const isGuestTicket = (ticket as any).isGuestTicket ?? false;
       return {
         id: ticket.id,
         ticketId: ticket.id,
         userId: ticket.userId,
-        userName: isGuestTicket ? ticket.guestName : ticket.user?.name,
-        userEmail: isGuestTicket ? ticket.guestEmail : ticket.user?.email,
-        userPhone: isGuestTicket ? ticket.guestPhone : ticket.user?.phone,
+        userName: isGuestTicket ? (ticket as any).guestName : ticket.user?.name,
+        userEmail: isGuestTicket ? (ticket as any).guestEmail : ticket.user?.email,
+        userPhone: isGuestTicket ? (ticket as any).guestPhone : ticket.user?.phone,
         quantity: ticket.quantity,
         totalPrice: ticket.totalPrice,
         status: ticket.status,
@@ -72,8 +72,8 @@ export async function GET(request: NextRequest) {
         specialRequests: ticket.specialRequests,
         seatNumbers: ticket.seatNumbers,
         isGuestTicket: isGuestTicket,
-        isFreeAccess: ticket.isFreeAccess ?? false,
-        subscriptionId: ticket.subscriptionId,
+        isFreeAccess: (ticket as any).isFreeAccess ?? false,
+        subscriptionId: (ticket as any).subscriptionId,
         createdAt: ticket.createdAt,
         event: {
           id: ticket.event.id,
@@ -83,10 +83,10 @@ export async function GET(request: NextRequest) {
           venue: ticket.event.venue,
         },
         user: ticket.userId ? {
-          id: ticket.user.id,
-          name: ticket.user.name,
-          email: ticket.user.email,
-          phone: ticket.user.phone,
+          id: ticket.user?.id,
+          name: ticket.user?.name,
+          email: ticket.user?.email,
+          phone: ticket.user?.phone,
         } : null,
       };
     });

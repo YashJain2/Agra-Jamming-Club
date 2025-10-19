@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       where: {
         userId: session.user.id,
         ...(eventId && { eventId }),
-        ...(status && { status }),
+        ...(status && { status: status as any }),
       },
       include: {
         event: true,
@@ -237,44 +237,46 @@ export async function POST(request: NextRequest) {
 
     // Generate QR code for the ticket
     const qrData = JSON.stringify({
-      ticketId: createdTicket.id,
-      userId: createdTicket.userId,
-      eventId: createdTicket.eventId,
-      quantity: createdTicket.quantity,
+      ticketId: createdTicket?.id,
+      userId: createdTicket?.userId,
+      eventId: createdTicket?.eventId,
+      quantity: createdTicket?.quantity,
     });
 
     const qrCode = await QRCode.toDataURL(qrData);
     
     // Update ticket with QR code
-    await prisma.ticket.update({
-      where: { id: createdTicket.id },
-      data: { qrCode: qrCode }
-    });
+    if (createdTicket) {
+      await prisma.ticket.update({
+        where: { id: createdTicket.id },
+        data: { qrCode: qrCode }
+      });
+    }
 
     // Format the response
     const formattedTicket = {
-      id: createdTicket.id,
-      userId: createdTicket.userId,
-      eventId: createdTicket.eventId,
-      quantity: createdTicket.quantity,
-      totalPrice: createdTicket.totalPrice,
-      status: createdTicket.status,
-      specialRequests: createdTicket.specialRequests,
-      createdAt: createdTicket.createdAt,
+      id: createdTicket?.id,
+      userId: createdTicket?.userId,
+      eventId: createdTicket?.eventId,
+      quantity: createdTicket?.quantity,
+      totalPrice: createdTicket?.totalPrice,
+      status: createdTicket?.status,
+      specialRequests: createdTicket?.specialRequests,
+      createdAt: createdTicket?.createdAt,
       qrCode: qrCode,
       event: {
-        id: createdTicket.event.id,
-        title: createdTicket.event.title,
-        date: createdTicket.event.date,
-        time: createdTicket.event.time,
-        venue: createdTicket.event.venue,
-        price: createdTicket.event.price,
+        id: (createdTicket as any)?.event?.id,
+        title: (createdTicket as any)?.event?.title,
+        date: (createdTicket as any)?.event?.date,
+        time: (createdTicket as any)?.event?.time,
+        venue: (createdTicket as any)?.event?.venue,
+        price: (createdTicket as any)?.event?.price,
       },
-      user: createdTicket.user ? {
-        id: createdTicket.user.id,
-        name: createdTicket.user.name,
-        email: createdTicket.user.email,
-        phone: createdTicket.user.phone,
+      user: (createdTicket as any)?.user ? {
+        id: (createdTicket as any).user.id,
+        name: (createdTicket as any).user.name,
+        email: (createdTicket as any).user.email,
+        phone: (createdTicket as any).user.phone,
       } : null,
     };
 

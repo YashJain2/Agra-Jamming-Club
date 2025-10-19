@@ -87,15 +87,16 @@ export async function POST(request: NextRequest) {
     console.log('🔄 Creating payment record...');
     const payment = await prisma.payment.create({
       data: {
+        userId: subscription.userId,
         subscriptionId: subscription.id,
         amount: orderData.totalAmount,
         currency: 'INR',
         status: 'COMPLETED',
         paymentMethod: 'RAZORPAY',
-        razorpayPaymentId: paymentId,
-        orderId: orderId,
-        signature: signature,
-        paidAt: new Date(),
+        gateway: 'RAZORPAY',
+        gatewayOrderId: orderId,
+        gatewayTxnId: paymentId,
+        gatewayResponse: { signature, orderId, paymentId },
       },
     });
 

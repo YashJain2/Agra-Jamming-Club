@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error updating event max tickets:', error);
     return NextResponse.json(
-      { error: 'Failed to update event max tickets', details: error.message },
+      { error: 'Failed to update event max tickets', details: (error as Error).message },
       { status: 500 }
     );
   }
