@@ -94,9 +94,26 @@ export async function GET(request: NextRequest) {
       prisma.event.count({ where }),
     ]);
 
+    // Calculate actual sold tickets for each event
+    const eventsWithActualSoldTickets = await Promise.all(
+      events.map(async (event) => {
+        const actualSoldTickets = await prisma.$queryRaw`
+          SELECT COALESCE(SUM(quantity), 0) as "totalSold"
+          FROM "Ticket" 
+          WHERE "eventId" = ${event.id} 
+          AND status IN ('CONFIRMED', 'PENDING', 'USED')
+        `;
+        
+        return {
+          ...event,
+          soldTickets: parseInt((actualSoldTickets[0] as any).totalSold),
+        };
+      })
+    );
+
     return NextResponse.json({
       success: true,
-      data: events,
+      data: eventsWithActualSoldTickets,
       pagination: {
         page,
         limit,
