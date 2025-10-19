@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // GET /api/events/[id]/guests - Get guest list for an event
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const { id: eventId } = params;
+    const { id: eventId } = await params;
 
     // Check if user has permission to view guest list
     const hasPermission = await requireModerator(session);
