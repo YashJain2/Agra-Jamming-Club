@@ -58,6 +58,7 @@ interface Ticket {
   totalPrice: number;
   status: string;
   isVerified: boolean;
+  verifiedAt?: string;
   user: {
     name: string;
     email: string;
