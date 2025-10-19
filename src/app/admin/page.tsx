@@ -22,6 +22,9 @@ interface Event {
   category: string;
   imageUrl?: string;
   tags?: string[];
+  requirements?: string;
+  cancellationPolicy?: string;
+  refundPolicy?: string;
   organizer: {
     name: string;
     email: string;
