@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Calendar, MapPin, Clock, Users, Minus, Plus, CreditCard } from 'lucide-react';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 
 interface Event {
   id: string;
@@ -21,7 +22,14 @@ interface TicketBookingProps {
   event: Event;
 }
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 export function TicketBooking({ event }: TicketBookingProps) {
+  const { data: session } = useSession();
   const [ticketQuantity, setTicketQuantity] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
@@ -29,6 +37,7 @@ export function TicketBooking({ event }: TicketBookingProps) {
     email: '',
     phone: '',
   });
+  const [isGuestCheckout, setIsGuestCheckout] = useState(false);
 
   const totalPrice = ticketQuantity * event.price;
 
@@ -39,54 +48,122 @@ export function TicketBooking({ event }: TicketBookingProps) {
     }
   };
 
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleBooking = async () => {
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
-      alert('Please fill in all customer details');
-      return;
+    // Validate guest details if guest checkout
+    if (isGuestCheckout) {
+      if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
+        alert('Please fill in all customer details');
+        return;
+      }
     }
 
     setIsProcessing(true);
     
     try {
-      // Generate order ID
-      const orderId = `EVENT_${event.id}_${Date.now()}`;
-      
-      // Initiate payment
-      const response = await fetch('/api/payment/initiate', {
+      // Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        alert('Failed to load payment gateway');
+        return;
+      }
+
+      // Create order
+      const orderResponse = await fetch('/api/payment/razorpay/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          orderId,
-          amount: totalPrice,
-          customerId: customerInfo.email,
           eventId: event.id,
-          ticketQuantity,
+          quantity: ticketQuantity,
+          guestName: isGuestCheckout ? customerInfo.name : undefined,
+          guestEmail: isGuestCheckout ? customerInfo.email : undefined,
+          guestPhone: isGuestCheckout ? customerInfo.phone : undefined,
         }),
       });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        // Redirect to Paytm payment page
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = data.paytmUrl;
-        
-        Object.keys(data.paymentRequest).forEach(key => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = key;
-          input.value = data.paymentRequest[key];
-          form.appendChild(input);
-        });
-        
-        document.body.appendChild(form);
-        form.submit();
-      } else {
-        alert('Failed to initiate payment. Please try again.');
+      const orderData = await orderResponse.json();
+
+      if (!orderData.success) {
+        alert(orderData.error || 'Failed to create payment order');
+        return;
       }
+
+      // Configure Razorpay options
+      const options = {
+        key: orderData.data.key,
+        amount: orderData.data.amount,
+        currency: orderData.data.currency,
+        name: orderData.data.name,
+        description: orderData.data.description,
+        image: orderData.data.image,
+        order_id: orderData.data.orderId,
+        theme: orderData.data.theme,
+        handler: async function (response: any) {
+          try {
+            // Verify payment
+            const verifyResponse = await fetch('/api/payment/razorpay/verify', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                orderId: response.razorpay_order_id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+                orderData: orderData.data.orderData,
+              }),
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (verifyData.success) {
+              alert('Payment successful! Your tickets have been booked.');
+              // You can redirect or show success message here
+              window.location.reload();
+            } else {
+              alert(verifyData.error || 'Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            alert('Payment verification failed');
+          }
+        },
+        prefill: {
+          name: session?.user?.name || customerInfo.name || '',
+          email: session?.user?.email || customerInfo.email || '',
+          contact: customerInfo.phone || '',
+        },
+        notes: {
+          event: event.title,
+          quantity: ticketQuantity.toString(),
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessing(false);
+          },
+        },
+      };
+
+      // Open Razorpay checkout
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+
     } catch (error) {
       console.error('Booking error:', error);
       alert('An error occurred. Please try again.');
@@ -141,6 +218,22 @@ export function TicketBooking({ event }: TicketBookingProps) {
             <div className="space-y-4 mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Customer Information</h3>
               
+              {/* Guest Checkout Toggle */}
+              {!session && (
+                <div className="mb-4">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={isGuestCheckout}
+                      onChange={(e) => setIsGuestCheckout(e.target.checked)}
+                      className="mr-2"
+                      disabled={isProcessing}
+                    />
+                    <span className="text-sm text-gray-700">Checkout as guest</span>
+                  </label>
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Full Name *
@@ -149,8 +242,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
                   type="text"
                   value={customerInfo.name}
                   onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Enter your full name"
+                  disabled={isProcessing}
                 />
               </div>
 
@@ -162,8 +256,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
                   type="email"
                   value={customerInfo.email}
                   onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Enter your email"
+                  disabled={isProcessing}
                 />
               </div>
 
@@ -175,8 +270,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
                   type="tel"
                   value={customerInfo.phone}
                   onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Enter your phone number"
+                  disabled={isProcessing}
                 />
               </div>
             </div>
@@ -219,7 +315,7 @@ export function TicketBooking({ event }: TicketBookingProps) {
               <div className="border-t pt-2">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total:</span>
-                  <span className="text-xl font-bold text-purple-600">₹{totalPrice}</span>
+                  <span className="text-xl font-bold text-pink-600">₹{totalPrice}</span>
                 </div>
               </div>
             </div>
@@ -228,7 +324,7 @@ export function TicketBooking({ event }: TicketBookingProps) {
             <button
               onClick={handleBooking}
               disabled={isProcessing || event.availableTickets === 0}
-              className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full bg-pink-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {isProcessing ? (
                 <>
@@ -244,7 +340,7 @@ export function TicketBooking({ event }: TicketBookingProps) {
             </button>
 
             <p className="text-xs text-gray-500 mt-4 text-center">
-              You will be redirected to Paytm for secure payment processing
+              Secure payment powered by Razorpay
             </p>
           </div>
         </div>
