@@ -195,16 +195,42 @@ export async function GET() {
       console.log('Regular user already exists:', regularUser.email);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Database initialized successfully!',
-      adminUser: { email: adminUser.email, role: adminUser.role },
-      regularUser: { email: regularUser.email, role: regularUser.role },
-      testCredentials: {
-        admin: { email: 'admin@agrajammingclub.com', password: 'admin123' },
-        user: { email: 'user@agrajammingclub.com', password: 'user123' }
-      }
-    });
+        // Fix event sold tickets to match actual ticket data
+        const events = await prisma.$queryRaw`
+          SELECT 
+            e.id,
+            e.title,
+            e."soldTickets",
+            COUNT(t.id) as "actualTicketCount",
+            COALESCE(SUM(t.quantity), 0) as "actualGuestCount"
+          FROM "Event" e
+          LEFT JOIN "Ticket" t ON e.id = t."eventId" AND t.status IN ('CONFIRMED', 'PENDING', 'USED')
+          GROUP BY e.id, e.title, e."soldTickets"
+        `;
+
+        // Update event sold tickets to match actual data
+        for (const event of events as any[]) {
+          if (event.soldTickets !== parseInt(event.actualGuestCount)) {
+            console.log(`Updating ${event.title}: ${event.soldTickets} -> ${event.actualGuestCount}`);
+            await prisma.$executeRaw`
+              UPDATE "Event" 
+              SET "soldTickets" = ${parseInt(event.actualGuestCount)}
+              WHERE id = ${event.id}
+            `;
+          }
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Database initialized successfully!',
+          adminUser: { email: adminUser.email, role: adminUser.role },
+          regularUser: { email: regularUser.email, role: regularUser.role },
+          testCredentials: {
+            admin: { email: 'admin@agrajammingclub.com', password: 'admin123' },
+            user: { email: 'user@agrajammingclub.com', password: 'user123' }
+          },
+          eventsFixed: events.length
+        });
 
   } catch (error) {
     console.error('Database initialization error:', error);
