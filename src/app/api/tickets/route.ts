@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       userDetails = {
         name: session!.user.name,
         email: session!.user.email,
-        phone: session!.user.phone,
+        phone: (session!.user as any).phone || '',
       };
     }
 
