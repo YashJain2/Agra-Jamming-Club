@@ -328,7 +328,7 @@ async function main() {
         eventId: ticketData.eventId,
         userId: ticketData.userId,
         quantity: ticketData.quantity,
-        status: ticketData.status,
+        status: ticketData.status as any,
         totalPrice: ticketData.quantity * (await prisma.event.findUnique({ where: { id: ticketData.eventId } }))?.price || 0,
       },
     });
