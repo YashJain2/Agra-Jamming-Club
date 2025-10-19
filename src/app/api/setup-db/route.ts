@@ -2,7 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
+// Allow this endpoint to be accessed without authentication
+export const runtime = 'nodejs';
+
+export async function GET(request: NextRequest) {
+  return await setupDatabase();
+}
+
 export async function POST(request: NextRequest) {
+  return await setupDatabase();
+}
+
+async function setupDatabase() {
   try {
     // This endpoint will create the database tables and seed initial data
     console.log('Setting up database...');
