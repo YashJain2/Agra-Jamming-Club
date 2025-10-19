@@ -6,6 +6,16 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   serverExternalPackages: ['@prisma/client'],
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+    };
+    return config;
+  },
 };
 
 module.exports = nextConfig;
