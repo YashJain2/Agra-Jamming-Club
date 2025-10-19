@@ -199,104 +199,132 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create ticket
-    const ticket = await prisma.ticket.create({
-      data: {
-        userId: userId,
-        eventId: eventId,
-        quantity: quantity,
-        totalPrice: totalPrice,
-        specialRequests: specialRequests,
-        status: 'PENDING',
-        // Guest ticket fields
-        isGuestTicket: Boolean(isGuestCheckout),
-        guestName: isGuestCheckout ? guestName : null,
-        guestEmail: isGuestCheckout ? guestEmail : null,
-        guestPhone: isGuestCheckout ? guestPhone : null,
-        // Subscription fields
-        isFreeAccess: isFreeAccess,
-        subscriptionId: subscriptionInfo?.subscriptionId || null,
-      },
-      include: {
-        event: {
-          select: {
-            id: true,
-            title: true,
-            date: true,
-            time: true,
-            venue: true,
-            price: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
-      },
-    });
+    // Create ticket using raw SQL to handle missing columns
+    const ticketId = `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    await prisma.$executeRaw`
+      INSERT INTO "Ticket" (
+        id, "userId", "eventId", quantity, "totalPrice", 
+        "specialRequests", status, "isGuestTicket", 
+        "guestName", "guestEmail", "guestPhone", 
+        "isFreeAccess", "subscriptionId", "createdAt", "updatedAt"
+      ) VALUES (
+        ${ticketId}, ${userId}, ${eventId}, ${quantity}, ${totalPrice},
+        ${specialRequests || null}, 'PENDING', ${Boolean(isGuestCheckout)},
+        ${isGuestCheckout ? guestName : null}, 
+        ${isGuestCheckout ? guestEmail : null}, 
+        ${isGuestCheckout ? guestPhone : null},
+        ${isFreeAccess}, ${subscriptionInfo?.subscriptionId || null}, NOW(), NOW()
+      )
+    `;
+
+    // Get the created ticket with event and user details
+    const ticket = await prisma.$queryRaw`
+      SELECT 
+        t.id,
+        t."userId",
+        t."eventId",
+        t.quantity,
+        t."totalPrice",
+        t.status,
+        t."specialRequests",
+        t."isGuestTicket",
+        t."guestName",
+        t."guestEmail",
+        t."guestPhone",
+        t."isFreeAccess",
+        t."subscriptionId",
+        t."createdAt",
+        e.title as "eventTitle",
+        e.date as "eventDate",
+        e.time as "eventTime",
+        e.venue as "eventVenue",
+        e.price as "eventPrice",
+        u.name as "userName",
+        u.email as "userEmail",
+        u.phone as "userPhone"
+      FROM "Ticket" t
+      LEFT JOIN "Event" e ON t."eventId" = e.id
+      LEFT JOIN "User" u ON t."userId" = u.id
+      WHERE t.id = ${ticketId}
+    `;
+
+    const createdTicket = ticket[0];
 
     // Generate QR code for the ticket
     const qrData = JSON.stringify({
-      ticketId: ticket.id,
-      userId: ticket.userId,
-      eventId: ticket.eventId,
-      quantity: ticket.quantity,
+      ticketId: createdTicket.id,
+      userId: createdTicket.userId,
+      eventId: createdTicket.eventId,
+      quantity: createdTicket.quantity,
     });
 
     const qrCode = await QRCode.toDataURL(qrData);
     
     // Update ticket with QR code
-    const updatedTicket = await prisma.ticket.update({
-      where: { id: ticket.id },
-      data: { qrCode: qrCode },
-      include: {
-        event: {
-          select: {
-            id: true,
-            title: true,
-            date: true,
-            time: true,
-            venue: true,
-            price: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
+    await prisma.$executeRaw`
+      UPDATE "Ticket" 
+      SET "qrCode" = ${qrCode}
+      WHERE id = ${ticketId}
+    `;
+
+    // Format the response
+    const formattedTicket = {
+      id: createdTicket.id,
+      userId: createdTicket.userId,
+      eventId: createdTicket.eventId,
+      quantity: createdTicket.quantity,
+      totalPrice: createdTicket.totalPrice,
+      status: createdTicket.status,
+      specialRequests: createdTicket.specialRequests,
+      isGuestTicket: createdTicket.isGuestTicket,
+      guestName: createdTicket.guestName,
+      guestEmail: createdTicket.guestEmail,
+      guestPhone: createdTicket.guestPhone,
+      isFreeAccess: createdTicket.isFreeAccess,
+      subscriptionId: createdTicket.subscriptionId,
+      createdAt: createdTicket.createdAt,
+      qrCode: qrCode,
+      event: {
+        id: createdTicket.eventId,
+        title: createdTicket.eventTitle,
+        date: createdTicket.eventDate,
+        time: createdTicket.eventTime,
+        venue: createdTicket.eventVenue,
+        price: createdTicket.eventPrice,
       },
-    });
+      user: createdTicket.userId ? {
+        id: createdTicket.userId,
+        name: createdTicket.userName,
+        email: createdTicket.userEmail,
+        phone: createdTicket.userPhone,
+      } : null,
+    };
 
     // Log the action (only for authenticated users)
     if (!isGuestCheckout && session) {
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: 'CREATE',
-          entity: 'Ticket',
-          entityId: ticket.id,
-          newValues: {
-            eventId: ticket.eventId,
-            quantity: ticket.quantity,
-            totalPrice: ticket.totalPrice,
-          },
-          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
-          userAgent: request.headers.get('user-agent'),
-        },
-      });
+      await prisma.$executeRaw`
+        INSERT INTO "AuditLog" (
+          id, "userId", action, entity, "entityId", 
+          "newValues", "ipAddress", "userAgent", "createdAt"
+        ) VALUES (
+          ${`audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`},
+          ${session.user.id}, 'CREATE', 'Ticket', ${formattedTicket.id},
+          ${JSON.stringify({
+            eventId: formattedTicket.eventId,
+            quantity: formattedTicket.quantity,
+            totalPrice: formattedTicket.totalPrice,
+          })},
+          ${request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null},
+          ${request.headers.get('user-agent') || null},
+          NOW()
+        )
+      `;
     }
 
     return NextResponse.json({
       success: true,
-      data: updatedTicket,
+      data: formattedTicket,
       message: isFreeAccess ? 'Ticket booked successfully with free access!' : 'Ticket booked successfully',
       subscriptionInfo: subscriptionInfo,
     }, { status: 201 });

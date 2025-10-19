@@ -49,45 +49,54 @@ export async function GET(
       );
     }
 
-    // Get all tickets for this event (both user and guest tickets)
-    const tickets = await prisma.ticket.findMany({
-      where: {
-        eventId: eventId,
-        status: {
-          in: ['CONFIRMED', 'PENDING', 'USED'],
-        },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
+    // Get all tickets for this event using raw SQL to handle missing columns
+    const tickets = await prisma.$queryRaw`
+      SELECT 
+        t.id,
+        t."userId",
+        t."eventId",
+        t.quantity,
+        t."totalPrice",
+        t.status,
+        t."isVerified",
+        t."verifiedAt",
+        t."verifiedBy",
+        t."qrCode",
+        t."specialRequests",
+        t."seatNumbers",
+        t."guestName",
+        t."guestEmail",
+        t."guestPhone",
+        t."isGuestTicket",
+        t."isFreeAccess",
+        t."subscriptionId",
+        t."createdAt",
+        u.name as "userName",
+        u.email as "userEmail",
+        u.phone as "userPhone"
+      FROM "Ticket" t
+      LEFT JOIN "User" u ON t."userId" = u.id
+      WHERE t."eventId" = ${eventId}
+        AND t.status IN ('CONFIRMED', 'PENDING', 'USED')
+      ORDER BY t."createdAt" ASC
+    `;
 
     // Calculate guest statistics
-    const totalGuests = tickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
-    const verifiedGuests = tickets.filter(t => t.isVerified).reduce((sum, ticket) => sum + ticket.quantity, 0);
+    const totalGuests = tickets.reduce((sum: number, ticket: any) => sum + ticket.quantity, 0);
+    const verifiedGuests = tickets.filter((t: any) => t.isVerified).reduce((sum: number, ticket: any) => sum + ticket.quantity, 0);
     const pendingVerification = totalGuests - verifiedGuests;
-    const guestTickets = tickets.filter(t => t.isGuestTicket === true).length;
-    const userTickets = tickets.filter(t => !t.isGuestTicket).length;
+    const guestTickets = tickets.filter((t: any) => t.isGuestTicket === true).length;
+    const userTickets = tickets.filter((t: any) => !t.isGuestTicket).length;
 
     // Format guest list with both user and guest details
-    const guestList = tickets.map(ticket => {
+    const guestList = tickets.map((ticket: any) => {
       const isGuestTicket = ticket.isGuestTicket ?? false; // Handle null values
       return {
         ticketId: ticket.id,
         userId: ticket.userId,
-        userName: isGuestTicket ? ticket.guestName : ticket.user?.name,
-        userEmail: isGuestTicket ? ticket.guestEmail : ticket.user?.email,
-        userPhone: isGuestTicket ? ticket.guestPhone : ticket.user?.phone,
+        userName: isGuestTicket ? ticket.guestName : ticket.userName,
+        userEmail: isGuestTicket ? ticket.guestEmail : ticket.userEmail,
+        userPhone: isGuestTicket ? ticket.guestPhone : ticket.userPhone,
         quantity: ticket.quantity,
         totalPrice: ticket.totalPrice,
         status: ticket.status,
@@ -98,6 +107,8 @@ export async function GET(
         specialRequests: ticket.specialRequests,
         seatNumbers: ticket.seatNumbers,
         isGuestTicket: isGuestTicket,
+        isFreeAccess: ticket.isFreeAccess ?? false,
+        subscriptionId: ticket.subscriptionId,
         createdAt: ticket.createdAt,
       };
     });

@@ -1,53 +1,113 @@
-// Create sample tickets for demo
-const sampleTickets = [
-  {
-    eventId: 'sample-event-1',
-    quantity: 2,
-    guestName: 'Priya Sharma',
-    guestEmail: 'priya.sharma@example.com',
-    guestPhone: '+91-9876543210',
-    isGuestTicket: true
-  },
-  {
-    eventId: 'sample-event-1', 
-    quantity: 1,
-    guestName: 'Rahul Singh',
-    guestEmail: 'rahul.singh@example.com',
-    guestPhone: '+91-9876543211',
-    isGuestTicket: true
-  },
-  {
-    eventId: 'sample-event-2',
-    quantity: 3,
-    guestName: 'Sneha Gupta',
-    guestEmail: 'sneha.gupta@example.com', 
-    guestPhone: '+91-9876543212',
-    isGuestTicket: true
-  }
-];
+const { PrismaClient } = require('@prisma/client');
 
-// Function to create tickets via API
+const prisma = new PrismaClient();
+
 async function createSampleTickets() {
-  for (const ticket of sampleTickets) {
-    try {
-      const response = await fetch('http://localhost:3000/api/tickets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(ticket)
+  try {
+    console.log('Creating sample tickets...');
+
+    // Get the first event
+    const event = await prisma.event.findFirst();
+    if (!event) {
+      console.log('No events found. Creating a sample event first...');
+      const newEvent = await prisma.event.create({
+        data: {
+          title: 'Sample Music Event',
+          description: 'A sample music event for testing',
+          date: new Date('2024-12-25'),
+          time: '19:00',
+          venue: 'Community Center',
+          address: '123 Music Street',
+          city: 'Agra',
+          state: 'Uttar Pradesh',
+          country: 'India',
+          price: 299,
+          maxTickets: 100,
+          soldTickets: 0,
+          category: 'Music',
+          tags: ['live', 'acoustic'],
+          status: 'PUBLISHED'
+        }
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Ticket created:', data.data.id);
-      } else {
-        const error = await response.json();
-        console.log('❌ Failed to create ticket:', error);
-      }
-    } catch (error) {
-      console.log('❌ Error creating ticket:', error);
+      console.log('Created event:', newEvent.title);
     }
+
+    // Get the first user
+    const user = await prisma.user.findFirst();
+    if (!user) {
+      console.log('No users found. Please run the database initialization first.');
+      return;
+    }
+
+    // Get the first event
+    const firstEvent = await prisma.event.findFirst();
+    if (!firstEvent) {
+      console.log('No events found.');
+      return;
+    }
+
+    // Create sample tickets
+    const tickets = [
+      {
+        userId: user.id,
+        eventId: firstEvent.id,
+        quantity: 1,
+        totalPrice: 299,
+        status: 'CONFIRMED',
+        guestName: 'John Doe',
+        guestEmail: 'john@example.com',
+        guestPhone: '9876543210',
+        isGuestTicket: true,
+        isFreeAccess: false
+      },
+      {
+        userId: user.id,
+        eventId: firstEvent.id,
+        quantity: 2,
+        totalPrice: 598,
+        status: 'PENDING',
+        guestName: 'Jane Smith',
+        guestEmail: 'jane@example.com',
+        guestPhone: '9876543211',
+        isGuestTicket: true,
+        isFreeAccess: false
+      },
+      {
+        userId: user.id,
+        eventId: firstEvent.id,
+        quantity: 1,
+        totalPrice: 0,
+        status: 'CONFIRMED',
+        isGuestTicket: false,
+        isFreeAccess: true
+      }
+    ];
+
+    for (const ticketData of tickets) {
+      const ticket = await prisma.ticket.create({
+        data: ticketData
+      });
+      console.log('Created ticket:', ticket.id, 'for', ticket.guestName || 'User');
+    }
+
+    console.log('Sample tickets created successfully!');
+    
+    // Update event sold tickets count
+    const ticketCount = await prisma.ticket.count({
+      where: { eventId: firstEvent.id }
+    });
+    
+    await prisma.event.update({
+      where: { id: firstEvent.id },
+      data: { soldTickets: ticketCount }
+    });
+
+    console.log(`Updated event sold tickets count to: ${ticketCount}`);
+
+  } catch (error) {
+    console.error('Error creating sample tickets:', error);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
