@@ -208,17 +208,29 @@ export async function GET() {
           GROUP BY e.id, e.title, e."soldTickets"
         `;
 
+        console.log('Events before sync:', events);
+
         // Update event sold tickets to match actual data
+        const updates = [];
         for (const event of events as any[]) {
-          if (event.soldTickets !== parseInt(event.actualGuestCount)) {
-            console.log(`Updating ${event.title}: ${event.soldTickets} -> ${event.actualGuestCount}`);
+          const actualCount = parseInt(event.actualGuestCount);
+          if (event.soldTickets !== actualCount) {
+            console.log(`Updating ${event.title}: ${event.soldTickets} -> ${actualCount}`);
             await prisma.$executeRaw`
               UPDATE "Event" 
-              SET "soldTickets" = ${parseInt(event.actualGuestCount)}
+              SET "soldTickets" = ${actualCount}
               WHERE id = ${event.id}
             `;
+            updates.push({
+              eventId: event.id,
+              title: event.title,
+              oldCount: event.soldTickets,
+              newCount: actualCount
+            });
           }
         }
+
+        console.log('Updates made:', updates);
 
         return NextResponse.json({
           success: true,
@@ -229,7 +241,8 @@ export async function GET() {
             admin: { email: 'admin@agrajammingclub.com', password: 'admin123' },
             user: { email: 'user@agrajammingclub.com', password: 'user123' }
           },
-          eventsFixed: events.length
+          eventsFixed: events.length,
+          ticketSyncUpdates: updates
         });
 
   } catch (error) {
