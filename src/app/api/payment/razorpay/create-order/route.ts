@@ -65,17 +65,15 @@ export async function POST(request: NextRequest) {
 
     // Check if user already has tickets for this event (only for authenticated users)
     if (!isGuestCheckout && session) {
-      const existingTickets = await prisma.ticket.findMany({
-        where: {
-          userId: session.user.id,
-          eventId: eventId,
-          status: {
-            in: ['PENDING', 'CONFIRMED'],
-          },
-        },
-      });
+      const existingTickets = await prisma.$queryRaw`
+        SELECT id, status, quantity
+        FROM "Ticket"
+        WHERE "userId" = ${session.user.id}
+        AND "eventId" = ${eventId}
+        AND status IN ('PENDING', 'CONFIRMED')
+      `;
 
-      if (existingTickets.length > 0) {
+      if ((existingTickets as any[]).length > 0) {
         return NextResponse.json(
           { error: 'You already have tickets for this event' },
           { status: 400 }
