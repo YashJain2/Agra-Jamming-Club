@@ -72,7 +72,9 @@ export const createRazorpayOrder = async (amount: number, currency: string = 'IN
     });
 
     if (!response.ok) {
-      throw new Error(`Razorpay API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Razorpay API error response:', errorText);
+      throw new Error(`Razorpay API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const order = await response.json();

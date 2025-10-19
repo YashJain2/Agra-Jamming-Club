@@ -84,7 +84,27 @@ export async function POST(request: NextRequest) {
     // Calculate total amount
     const totalAmount = event.price * quantity;
 
+    // Check minimum amount requirement for Razorpay (minimum ₹1 = 100 paise)
+    if (totalAmount < 1) {
+      return NextResponse.json(
+        { error: 'Minimum order amount is ₹1' },
+        { status: 400 }
+      );
+    }
+
     // Create Razorpay order
+    console.log('Creating order for event:', {
+      eventId,
+      eventTitle: event.title,
+      eventPrice: event.price,
+      quantity,
+      totalAmount,
+      isGuestCheckout,
+      guestName,
+      guestEmail,
+      guestPhone
+    });
+
     const order = await createRazorpayOrder(
       totalAmount,
       'INR',
