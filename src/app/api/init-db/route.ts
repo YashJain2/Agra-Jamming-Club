@@ -8,6 +8,153 @@ export async function GET() {
   try {
     console.log('Initializing database...');
     
+    // First, try to create tables if they don't exist
+    try {
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "User" (
+          id TEXT NOT NULL PRIMARY KEY,
+          name TEXT,
+          email TEXT UNIQUE NOT NULL,
+          "emailVerified" TIMESTAMP,
+          image TEXT,
+          password TEXT,
+          phone TEXT,
+          role TEXT NOT NULL DEFAULT 'USER',
+          "isActive" BOOLEAN NOT NULL DEFAULT TRUE,
+          "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP NOT NULL
+        );
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "Event" (
+          id TEXT NOT NULL PRIMARY KEY,
+          title TEXT NOT NULL,
+          description TEXT NOT NULL,
+          date TIMESTAMP NOT NULL,
+          time TEXT NOT NULL,
+          venue TEXT NOT NULL,
+          address TEXT NOT NULL,
+          city TEXT NOT NULL,
+          state TEXT NOT NULL,
+          country TEXT NOT NULL,
+          price REAL NOT NULL,
+          "maxTickets" INTEGER NOT NULL,
+          "soldTickets" INTEGER NOT NULL DEFAULT 0,
+          "imageUrl" TEXT,
+          gallery TEXT[],
+          category TEXT NOT NULL,
+          tags TEXT[],
+          requirements TEXT,
+          "cancellationPolicy" TEXT,
+          "refundPolicy" TEXT,
+          status TEXT NOT NULL DEFAULT 'PUBLISHED',
+          "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP NOT NULL
+        );
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "SubscriptionPlan" (
+          id TEXT NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL UNIQUE,
+          description TEXT,
+          price REAL NOT NULL,
+          duration INTEGER NOT NULL,
+          benefits TEXT[],
+          "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP NOT NULL
+        );
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "Subscription" (
+          id TEXT NOT NULL PRIMARY KEY,
+          "userId" TEXT NOT NULL,
+          "planId" TEXT NOT NULL,
+          "startDate" TIMESTAMP NOT NULL,
+          "endDate" TIMESTAMP NOT NULL,
+          price REAL NOT NULL,
+          status TEXT NOT NULL DEFAULT 'ACTIVE',
+          "autoRenew" BOOLEAN NOT NULL DEFAULT TRUE,
+          "cancelledAt" TIMESTAMP,
+          "cancellationReason" TEXT,
+          "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP NOT NULL,
+          FOREIGN KEY ("userId") REFERENCES "User" (id) ON DELETE CASCADE,
+          FOREIGN KEY ("planId") REFERENCES "SubscriptionPlan" (id)
+        );
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "Ticket" (
+          id TEXT NOT NULL PRIMARY KEY,
+          "userId" TEXT,
+          "eventId" TEXT NOT NULL,
+          quantity INTEGER NOT NULL DEFAULT 1,
+          "totalPrice" REAL NOT NULL,
+          status TEXT NOT NULL DEFAULT 'PENDING',
+          "isVerified" BOOLEAN NOT NULL DEFAULT FALSE,
+          "verifiedAt" TIMESTAMP,
+          "verifiedBy" TEXT,
+          "qrCode" TEXT,
+          "seatNumbers" TEXT[],
+          "specialRequests" TEXT,
+          "guestName" TEXT,
+          "guestEmail" TEXT,
+          "guestPhone" TEXT,
+          "isGuestTicket" BOOLEAN NOT NULL DEFAULT FALSE,
+          "isFreeAccess" BOOLEAN NOT NULL DEFAULT FALSE,
+          "subscriptionId" TEXT,
+          "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP NOT NULL,
+          FOREIGN KEY ("userId") REFERENCES "User" (id) ON DELETE CASCADE,
+          FOREIGN KEY ("eventId") REFERENCES "Event" (id) ON DELETE CASCADE,
+          FOREIGN KEY ("subscriptionId") REFERENCES "Subscription" (id)
+        );
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "Payment" (
+          id TEXT NOT NULL PRIMARY KEY,
+          "userId" TEXT,
+          "ticketId" TEXT,
+          "subscriptionId" TEXT,
+          amount REAL NOT NULL,
+          currency TEXT NOT NULL DEFAULT 'INR',
+          method TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'PENDING',
+          "transactionId" TEXT,
+          "paymentDetails" JSONB,
+          "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP NOT NULL,
+          FOREIGN KEY ("userId") REFERENCES "User" (id) ON DELETE CASCADE,
+          FOREIGN KEY ("ticketId") REFERENCES "Ticket" (id) ON DELETE CASCADE,
+          FOREIGN KEY ("subscriptionId") REFERENCES "Subscription" (id)
+        );
+      `;
+      
+      await prisma.$executeRaw`
+        CREATE TABLE IF NOT EXISTS "AuditLog" (
+          id TEXT NOT NULL PRIMARY KEY,
+          "userId" TEXT,
+          action TEXT NOT NULL,
+          entity TEXT,
+          "entityId" TEXT,
+          "oldValues" JSONB,
+          "newValues" JSONB,
+          "ipAddress" TEXT,
+          "userAgent" TEXT,
+          "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY ("userId") REFERENCES "User" (id) ON DELETE SET NULL
+        );
+      `;
+      
+      console.log('Database tables created successfully');
+    } catch (tableError) {
+      console.log('Tables might already exist or error creating them:', tableError);
+    }
+    
     // Create admin user
     const adminEmail = 'admin@agrajammingclub.com';
     const userEmail = 'user@agrajammingclub.com';
