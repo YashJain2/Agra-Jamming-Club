@@ -46,11 +46,14 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // For demo purposes, we'll use a simple password check
-        // In production, you should hash passwords
-        const isValidPassword = await bcrypt.compare(credentials.password, user.password || '')
+        // Check password with bcrypt
+        if (!user.password) {
+          return null
+        }
         
-        if (isValidPassword || credentials.password === 'password123') {
+        const isValidPassword = await bcrypt.compare(credentials.password, user.password)
+        
+        if (isValidPassword) {
           return {
             id: user.id,
             email: user.email,
