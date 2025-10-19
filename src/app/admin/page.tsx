@@ -15,16 +15,21 @@ interface Event {
   date: string;
   time: string;
   venue: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
   price: number;
   maxTickets: number;
   soldTickets: number;
   status: string;
   category: string;
-  imageUrl?: string;
-  tags?: string[];
-  requirements?: string;
-  cancellationPolicy?: string;
-  refundPolicy?: string;
+  imageUrl: string;
+  gallery: string[];
+  tags: string[];
+  requirements: string;
+  cancellationPolicy: string;
+  refundPolicy: string;
   organizer: {
     name: string;
     email: string;
