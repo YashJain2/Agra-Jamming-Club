@@ -247,7 +247,7 @@ export async function logSecurityEvent(
         action: `SECURITY_${event}`,
         entity: 'Security',
         entityId: null,
-        oldValues: null,
+        oldValues: undefined,
         newValues: details,
         ipAddress,
         userAgent,

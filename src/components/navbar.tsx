@@ -100,7 +100,7 @@ export function Navbar() {
                 )}
                 <span className="text-sm text-gray-700">Welcome, {user.name}</span>
                 <button
-                  onClick={signOut}
+                  onClick={() => signOut()}
                   className="bg-gray-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-600 transition-colors flex items-center space-x-2"
                 >
                   <LogOut className="h-4 w-4" />
@@ -159,7 +159,7 @@ export function Navbar() {
                     Welcome, {user.name}
                   </div>
                   <button
-                    onClick={signOut}
+                    onClick={() => signOut()}
                     className="w-full text-left bg-gray-500 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-gray-600 transition-colors flex items-center space-x-2"
                   >
                     <LogOut className="h-4 w-4" />

@@ -16,8 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has permission to view all tickets
-    const hasPermission = await requireModerator(session);
-    if (!hasPermission) {
+    if (!['MODERATOR', 'ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }

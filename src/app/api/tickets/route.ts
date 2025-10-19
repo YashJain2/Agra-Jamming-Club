@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
         specialRequests: specialRequests,
         status: 'PENDING',
         // Guest ticket fields
-        isGuestTicket: isGuestCheckout,
+        isGuestTicket: Boolean(isGuestCheckout),
         guestName: isGuestCheckout ? guestName : null,
         guestEmail: isGuestCheckout ? guestEmail : null,
         guestPhone: isGuestCheckout ? guestPhone : null,
