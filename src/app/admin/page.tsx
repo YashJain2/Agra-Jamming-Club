@@ -21,6 +21,7 @@ interface Event {
   status: string;
   category: string;
   imageUrl?: string;
+  tags?: string[];
   organizer: {
     name: string;
     email: string;
