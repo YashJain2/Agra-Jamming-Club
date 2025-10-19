@@ -20,6 +20,7 @@ interface Event {
   soldTickets: number;
   status: string;
   category: string;
+  imageUrl?: string;
   organizer: {
     name: string;
     email: string;
