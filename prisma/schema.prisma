@@ -1,0 +1,352 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?   // For credentials provider
+  name          String?
+  phone         String?
+  image         String?
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  phoneVerified DateTime?
+  lastLoginAt   DateTime?
+  loginAttempts Int      @default(0)
+  lockedUntil   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  subscriptions Subscription[]
+  tickets       Ticket[]
+  payments      Payment[]
+  sessions      Session[]
+  accounts      Account[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  organizedEvents Event[] @relation("EventOrganizer")
+  
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+  SUPER_ADMIN
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  time        String
+  venue       String
+  address     String?
+  city        String    @default("Agra")
+  state       String    @default("Uttar Pradesh")
+  country     String    @default("India")
+  price       Float
+  maxTickets  Int       @default(100)
+  soldTickets Int      @default(0)
+  imageUrl    String?
+  gallery     String[]  // Array of image URLs
+  category    EventCategory @default(MUSIC)
+  status      EventStatus @default(DRAFT)
+  isActive    Boolean   @default(true)
+  tags        String[]  // Array of tags
+  requirements String?  // Special requirements
+  cancellationPolicy String?
+  refundPolicy String?
+  organizerId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  tickets     Ticket[]
+  organizer   User      @relation("EventOrganizer", fields: [organizerId], references: [id])
+  
+  @@map("events")
+}
+
+enum EventCategory {
+  MUSIC
+  COMEDY
+  WORKSHOP
+  CONFERENCE
+  NETWORKING
+  OTHER
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+  POSTPONED
+}
+
+model Subscription {
+  id          String    @id @default(cuid())
+  userId      String
+  planId      String
+  startDate   DateTime
+  endDate     DateTime
+  price       Float
+  status      SubscriptionStatus @default(ACTIVE)
+  autoRenew   Boolean   @default(true)
+  cancelledAt DateTime?
+  cancellationReason String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        SubscriptionPlan @relation(fields: [planId], references: [id])
+  payments    Payment[]
+  tickets     Ticket[]  // Tickets that used this subscription for free access
+  
+  @@map("subscriptions")
+}
+
+model SubscriptionPlan {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int       // Duration in months
+  maxEvents   Int?      // Maximum events per month (null = unlimited)
+  benefits    String[]  // Array of benefits
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  subscriptions Subscription[]
+  
+  @@map("subscription_plans")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+  PENDING
+}
+
+model Ticket {
+  id          String    @id @default(cuid())
+  userId      String?   // Made optional for guest tickets
+  eventId     String
+  quantity    Int       @default(1)
+  totalPrice  Float
+  status      TicketStatus @default(PENDING)
+  isVerified  Boolean   @default(false)
+  verifiedAt  DateTime?
+  verifiedBy  String?   // User ID who verified
+  qrCode      String?   // QR code for verification
+  seatNumbers String[]  // Array of seat numbers if applicable
+  specialRequests String?
+  // Guest ticket fields
+  guestName   String?   // For guest tickets
+  guestEmail  String?   // For guest tickets
+  guestPhone  String?   // For guest tickets
+  isGuestTicket Boolean @default(false)
+  // Subscription fields
+  isFreeAccess Boolean @default(false) // True if ticket was free due to subscription
+  subscriptionId String? // Reference to subscription that provided free access
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+  payments    Payment[]
+  
+  @@map("tickets")
+}
+
+enum TicketStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REFUNDED
+  USED
+}
+
+model Payment {
+  id              String    @id @default(cuid())
+  userId          String
+  amount          Float
+  currency        String    @default("INR")
+  status          PaymentStatus
+  paymentMethod   String    // paytm, card, wallet, etc.
+  gateway         String    // paytm, razorpay, etc.
+  gatewayOrderId  String?
+  gatewayTxnId    String?
+  gatewayResponse Json?
+  refundAmount    Float?    @default(0)
+  refundReason    String?
+  refundedAt      DateTime?
+  failureReason   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  ticket          Ticket?   @relation(fields: [ticketId], references: [id])
+  
+  subscriptionId  String?
+  ticketId        String?
+  
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Enterprise-level models
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
+  entity    String   // User, Event, Payment, etc.
+  entityId  String?
+  oldValues Json?
+  newValues Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  metadata  Json?    // Additional data
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  PAYMENT
+  EVENT
+  SUBSCRIPTION
+}
+
+model SystemSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string") // string, number, boolean, json
+  category  String   @default("general")
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  name        String
+  key         String   @unique
+  permissions String[] // Array of permissions
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("api_keys")
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  identifier String  // IP address or user ID
+  endpoint  String
+  count     Int      @default(1)
+  windowStart DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([identifier, endpoint, windowStart])
+  @@map("rate_limits")
+}
