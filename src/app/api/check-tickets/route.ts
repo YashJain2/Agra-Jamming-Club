@@ -65,8 +65,6 @@ export async function GET(request: NextRequest) {
         eventTitle: ticket.event?.title || 'Unknown Event',
         quantity: ticket.quantity,
         status: ticket.status,
-        guestName: ticket.guestName,
-        isGuestTicket: ticket.isGuestTicket
       })),
       eventCounts
     });
