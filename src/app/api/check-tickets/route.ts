@@ -7,54 +7,68 @@ export async function GET(request: NextRequest) {
   try {
     console.log('Checking ticket data in database...');
 
-    // Get all tickets with event details
-    const tickets = await prisma.$queryRaw`
-      SELECT 
-        t.id,
-        t."eventId",
-        t.quantity,
-        t.status,
-        t."guestName",
-        t."isGuestTicket",
-        e.title as "eventTitle"
-      FROM "Ticket" t
-      LEFT JOIN "Event" e ON t."eventId" = e.id
-      ORDER BY t."createdAt" DESC
-    `;
+    // Get all tickets with event details using Prisma ORM
+    const tickets = await prisma.ticket.findMany({
+      include: {
+        event: {
+          select: {
+            title: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
-    // Get event ticket counts
-    const eventCounts = await prisma.$queryRaw`
-      SELECT 
-        e.id,
-        e.title,
-        e."soldTickets",
-        COUNT(t.id) as "actualTicketCount",
-        COALESCE(SUM(t.quantity), 0) as "actualGuestCount"
-      FROM "Event" e
-      LEFT JOIN "Ticket" t ON e.id = t."eventId" AND t.status IN ('CONFIRMED', 'PENDING', 'USED')
-      GROUP BY e.id, e.title, e."soldTickets"
-      ORDER BY e.title
-    `;
+    // Get event ticket counts using Prisma ORM
+    const events = await prisma.event.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        title: true,
+        soldTickets: true
+      }
+    });
+
+    const eventCounts = await Promise.all(
+      events.map(async (event) => {
+        const actualTickets = await prisma.ticket.findMany({
+          where: {
+            eventId: event.id,
+            status: { in: ['CONFIRMED', 'PENDING', 'USED'] }
+          },
+          select: {
+            quantity: true
+          }
+        });
+
+        const actualTicketCount = actualTickets.length;
+        const actualGuestCount = actualTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
+
+        return {
+          id: event.id,
+          title: event.title,
+          soldTickets: event.soldTickets,
+          actualTicketCount,
+          actualGuestCount,
+          synced: event.soldTickets === actualGuestCount
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,
       totalTickets: tickets.length,
-      tickets: tickets.map((ticket: any) => ({
+      tickets: tickets.map((ticket) => ({
         id: ticket.id,
-        eventTitle: ticket.eventTitle,
+        eventTitle: ticket.event?.title || 'Unknown Event',
         quantity: ticket.quantity,
         status: ticket.status,
         guestName: ticket.guestName,
         isGuestTicket: ticket.isGuestTicket
       })),
-      eventCounts: eventCounts.map((event: any) => ({
-        id: event.id,
-        title: event.title,
-        soldTickets: event.soldTickets,
-        actualTicketCount: event.actualTicketCount,
-        actualGuestCount: event.actualGuestCount,
-        synced: event.soldTickets === parseInt(event.actualGuestCount)
-      }))
+      eventCounts
     });
 
   } catch (error) {

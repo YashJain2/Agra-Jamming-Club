@@ -23,52 +23,45 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get all tickets with event and user details using raw SQL to handle missing columns
-    const tickets = await prisma.$queryRaw`
-      SELECT 
-        t.id,
-        t."userId",
-        t."eventId",
-        t.quantity,
-        t."totalPrice",
-        t.status,
-        t."isVerified",
-        t."verifiedAt",
-        t."verifiedBy",
-        t."qrCode",
-        t."specialRequests",
-        t."seatNumbers",
-        t."guestName",
-        t."guestEmail",
-        t."guestPhone",
-        t."isGuestTicket",
-        t."isFreeAccess",
-        t."subscriptionId",
-        t."createdAt",
-        u.name as "userName",
-        u.email as "userEmail",
-        u.phone as "userPhone",
-        e.title as "eventTitle",
-        e.date as "eventDate",
-        e.time as "eventTime",
-        e.venue as "eventVenue"
-      FROM "Ticket" t
-      LEFT JOIN "User" u ON t."userId" = u.id
-      LEFT JOIN "Event" e ON t."eventId" = e.id
-      WHERE t.status IN ('CONFIRMED', 'PENDING', 'USED')
-      ORDER BY t."createdAt" DESC
-    `;
+    // Get all tickets with event and user details using Prisma ORM
+    const tickets = await prisma.ticket.findMany({
+      where: {
+        status: { in: ['CONFIRMED', 'PENDING', 'USED'] }
+      },
+      include: {
+        event: {
+          select: {
+            id: true,
+            title: true,
+            date: true,
+            time: true,
+            venue: true
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
     // Format tickets for verification
-    const verificationTickets = tickets.map((ticket: any) => {
+    const verificationTickets = tickets.map((ticket) => {
       const isGuestTicket = ticket.isGuestTicket ?? false;
       return {
         id: ticket.id,
         ticketId: ticket.id,
         userId: ticket.userId,
-        userName: isGuestTicket ? ticket.guestName : ticket.userName,
-        userEmail: isGuestTicket ? ticket.guestEmail : ticket.userEmail,
-        userPhone: isGuestTicket ? ticket.guestPhone : ticket.userPhone,
+        userName: isGuestTicket ? ticket.guestName : ticket.user?.name,
+        userEmail: isGuestTicket ? ticket.guestEmail : ticket.user?.email,
+        userPhone: isGuestTicket ? ticket.guestPhone : ticket.user?.phone,
         quantity: ticket.quantity,
         totalPrice: ticket.totalPrice,
         status: ticket.status,
@@ -83,17 +76,17 @@ export async function GET(request: NextRequest) {
         subscriptionId: ticket.subscriptionId,
         createdAt: ticket.createdAt,
         event: {
-          id: ticket.eventId,
-          title: ticket.eventTitle,
-          date: ticket.eventDate,
-          time: ticket.eventTime,
-          venue: ticket.eventVenue,
+          id: ticket.event.id,
+          title: ticket.event.title,
+          date: ticket.event.date,
+          time: ticket.event.time,
+          venue: ticket.event.venue,
         },
         user: ticket.userId ? {
-          id: ticket.userId,
-          name: ticket.userName,
-          email: ticket.userEmail,
-          phone: ticket.userPhone,
+          id: ticket.user.id,
+          name: ticket.user.name,
+          email: ticket.user.email,
+          phone: ticket.user.phone,
         } : null,
       };
     });

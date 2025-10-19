@@ -112,8 +112,8 @@ export default function AdminDashboard() {
   const stats = {
     totalEvents: events.length,
     activeSubscriptions: subscriptions.filter(s => s.status === 'ACTIVE').length,
-    totalRevenue: subscriptions.reduce((sum, s) => sum + s.price, 0),
-    ticketsSold: tickets.length
+    totalRevenue: subscriptions.reduce((sum, s) => sum + s.price, 0) + tickets.reduce((sum, t) => sum + t.totalPrice, 0),
+    ticketsSold: tickets.reduce((sum, t) => sum + t.quantity, 0)
   }
 
   useEffect(() => {
@@ -235,28 +235,33 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">Enterprise-level event and subscription management</p>
+          <div className="flex justify-between items-center py-8">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
+                <Settings className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p className="text-gray-600 mt-1">Enterprise-level event and subscription management</p>
+              </div>
             </div>
             <div className="flex space-x-3">
               <button 
                 onClick={() => setShowCreateEvent(true)}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+                className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-5 w-5 mr-2" />
                 New Event
               </button>
               <button 
                 onClick={() => setShowGuestVerification(true)}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                <QrCode className="h-4 w-4 mr-2" />
+                <QrCode className="h-5 w-5 mr-2" />
                 Guest Verification
               </button>
             </div>
@@ -265,7 +270,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             {[
@@ -278,13 +283,13 @@ export default function AdminDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-purple-500 text-purple-600 bg-purple-50'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <tab.icon className="h-4 w-4 mr-2" />
+                <tab.icon className="h-5 w-5 mr-2" />
                 {tab.label}
               </button>
             ))}
@@ -298,50 +303,50 @@ export default function AdminDashboard() {
           <div className="space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
                 <div className="flex items-center">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Calendar className="h-6 w-6 text-blue-600" />
+                  <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl">
+                    <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Events</p>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.totalEvents}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.totalEvents}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
                 <div className="flex items-center">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Users className="h-6 w-6 text-green-600" />
+                  <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl">
+                    <Users className="h-6 w-6 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Active Subscriptions</p>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.activeSubscriptions}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.activeSubscriptions}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
                 <div className="flex items-center">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <DollarSign className="h-6 w-6 text-purple-600" />
+                  <div className="p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl">
+                    <DollarSign className="h-6 w-6 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                    <p className="text-2xl font-semibold text-gray-900">₹{stats.totalRevenue.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">₹{stats.totalRevenue.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
                 <div className="flex items-center">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <Ticket className="h-6 w-6 text-orange-600" />
+                  <div className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl">
+                    <Ticket className="h-6 w-6 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Tickets Sold</p>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.ticketsSold}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.ticketsSold}</p>
                   </div>
                 </div>
               </div>
@@ -421,7 +426,7 @@ export default function AdminDashboard() {
                 <div key={event.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                   <div className="relative h-48">
                     <Image
-                      src="/api/placeholder/400/300"
+                      src={event.imageUrl || "https://via.placeholder.com/400x300/6366f1/ffffff?text=No+Image"}
                       alt={event.title}
                       fill
                       className="object-cover"
@@ -556,44 +561,141 @@ export default function AdminDashboard() {
         {/* Guest Verification Tab */}
         {activeTab === 'verification' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Guest Verification</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Guest Verification</h2>
+              <div className="flex space-x-4">
+                <div className="bg-blue-50 px-4 py-2 rounded-lg">
+                  <span className="text-sm text-blue-600">Total Tickets: </span>
+                  <span className="font-semibold text-blue-800">{tickets.length}</span>
+                </div>
+                <div className="bg-yellow-50 px-4 py-2 rounded-lg">
+                  <span className="text-sm text-yellow-600">Pending: </span>
+                  <span className="font-semibold text-yellow-800">{tickets.filter(t => !t.isVerified).length}</span>
+                </div>
+                <div className="bg-green-50 px-4 py-2 rounded-lg">
+                  <span className="text-sm text-green-600">Verified: </span>
+                  <span className="font-semibold text-green-800">{tickets.filter(t => t.isVerified).length}</span>
+                </div>
+              </div>
+            </div>
             
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">Pending Verifications</h3>
+                <h3 className="text-lg font-medium text-gray-900">All Tickets</h3>
+                <p className="text-sm text-gray-500">Manage ticket verification for all events</p>
               </div>
-              <div className="p-6">
-                {tickets.filter(t => !t.isVerified).length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No pending verifications</p>
-                ) : (
-                  <div className="space-y-4">
-                    {tickets.filter(t => !t.isVerified).map((ticket) => (
-                      <div key={ticket.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h4 className="font-medium">{ticket.user.name}</h4>
-                          <p className="text-sm text-gray-600">{ticket.event.title} - {ticket.quantity} ticket(s)</p>
-                          <p className="text-xs text-gray-500">{ticket.event.date} at {ticket.event.venue}</p>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button 
-                            onClick={() => handleVerifyTicket(ticket.id, 'verify')}
-                            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Verify
-                          </button>
-                          <button 
-                            onClick={() => handleVerifyTicket(ticket.id, 'unverify')}
-                            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors flex items-center"
-                          >
-                            <XCircle className="h-4 w-4 mr-1" />
-                            Reject
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guest</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tickets</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {tickets.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                          <div className="flex flex-col items-center">
+                            <Ticket className="h-12 w-12 text-gray-300 mb-4" />
+                            <p className="text-lg font-medium">No tickets found</p>
+                            <p className="text-sm">Tickets will appear here once users purchase them</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      tickets.map((ticket) => (
+                        <tr key={ticket.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                  <Users className="h-5 w-5 text-purple-600" />
+                                </div>
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {ticket.user?.name || 'Guest User'}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {ticket.user?.email || 'No email'}
+                                </div>
+                                {ticket.user?.phone && (
+                                  <div className="text-xs text-gray-400">
+                                    {ticket.user.phone}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {ticket.event?.title || 'Unknown Event'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {ticket.event?.date ? new Date(ticket.event.date).toLocaleDateString() : 'No date'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {ticket.event?.venue || 'No venue'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {ticket.quantity} ticket(s)
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              ₹{ticket.totalPrice || 0}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              {ticket.isVerified ? (
+                                <div className="flex items-center text-green-600">
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  <span className="text-sm">Verified</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center text-yellow-600">
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  <span className="text-sm">Pending</span>
+                                </div>
+                              )}
+                            </div>
+                            {ticket.verifiedAt && (
+                              <div className="text-xs text-gray-400 mt-1">
+                                {new Date(ticket.verifiedAt).toLocaleString()}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              {!ticket.isVerified ? (
+                                <button
+                                  onClick={() => handleVerifyTicket(ticket.id, 'verify')}
+                                  className="text-green-600 hover:text-green-900 bg-green-100 px-3 py-1 rounded-md hover:bg-green-200 transition-colors flex items-center"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Verify
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleVerifyTicket(ticket.id, 'unverify')}
+                                  className="text-red-600 hover:text-red-900 bg-red-100 px-3 py-1 rounded-md hover:bg-red-200 transition-colors flex items-center"
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Unverify
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -635,7 +737,7 @@ export default function AdminDashboard() {
                 {/* Event Image */}
                 <div className="relative h-64 rounded-lg overflow-hidden">
                   <Image
-                    src={selectedEvent.imageUrl || '/api/placeholder/400/300'}
+                    src={selectedEvent.imageUrl || "https://via.placeholder.com/400x300/6366f1/ffffff?text=No+Image"}
                     alt={selectedEvent.title}
                     fill
                     className="object-cover"

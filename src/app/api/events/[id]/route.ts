@@ -16,8 +16,8 @@ const updateEventSchema = z.object({
   country: z.string().optional(),
   price: z.number().min(0).optional(),
   maxTickets: z.number().min(1).optional(),
-  imageUrl: z.string().url().optional(),
-  gallery: z.array(z.string().url()).optional(),
+  imageUrl: z.string().optional(),
+  gallery: z.array(z.string()).optional(),
   category: z.enum(['MUSIC', 'COMEDY', 'WORKSHOP', 'CONFERENCE', 'NETWORKING', 'OTHER']).optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED', 'POSTPONED']).optional(),
   tags: z.array(z.string()).optional(),
@@ -33,57 +33,41 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    // Use raw SQL to avoid Prisma schema issues
-    const eventResult = await prisma.$queryRaw`
-      SELECT 
-        e.*,
-        o.id as "organizerId",
-        o.name as "organizerName", 
-        o.email as "organizerEmail"
-      FROM "Event" e
-      LEFT JOIN "User" o ON e."organizerId" = o.id
-      WHERE e.id = ${id} AND e."isActive" = true
-    `;
+    const event = await prisma.event.findUnique({
+      where: {
+        id: id,
+        isActive: true,
+      },
+      include: {
+        organizer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        _count: {
+          select: {
+            tickets: true,
+          },
+        },
+      },
+    });
 
-    // Get ticket count separately
-    const ticketCountResult = await prisma.$queryRaw`
-      SELECT COUNT(*) as "ticketCount"
-      FROM "Ticket" t
-      WHERE t."eventId" = ${id}
-    `;
-
-    const events = eventResult as any[];
-    if (events.length === 0) {
+    if (!event) {
       return NextResponse.json(
         { error: 'Event not found' },
         { status: 404 }
       );
     }
 
-    const event = events[0];
-    const ticketCount = (ticketCountResult as any[])[0].ticketCount;
-    
-    // Format the response to match expected structure
-    const formattedEvent = {
-      ...event,
-      organizer: {
-        id: event.organizerId,
-        name: event.organizerName,
-        email: event.organizerEmail,
-      },
-      _count: {
-        tickets: parseInt(ticketCount),
-      },
-    };
-
     return NextResponse.json({
       success: true,
-      data: formattedEvent,
+      data: event,
     });
 
   } catch (error) {
     console.error('Error fetching event:', error);
-    console.error('Event ID:', id);
     console.error('Error details:', {
       message: (error as Error).message,
       stack: (error as Error).stack,

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Calendar, Users, Music, MapPin, Ticket } from 'lucide-react'
+import { Calendar, Users, Music, MapPin, Ticket, ArrowRight } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -97,85 +97,15 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Event Card 1 */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-pink-200">
-              <div className="relative h-48">
-                <img
-                  src="/api/placeholder/400/300"
-                  alt="Acoustic Evening"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 left-4 bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  This Month
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Acoustic Evening</h3>
-                <div className="flex items-center text-gray-600 mb-2">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <span>December 15, 2024</span>
-                </div>
-                <div className="flex items-center text-gray-600 mb-4">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  <span>Community Center, Agra</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-pink-500">₹299</span>
-                  <Link href="/events" className="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600 transition-colors">
-                    Book Now
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Event Card 2 */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-blue-200">
-              <div className="relative h-48">
-                <img
-                  src="/api/placeholder/400/300"
-                  alt="Jazz Night"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 left-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  Next Month
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Jazz Night</h3>
-                <div className="flex items-center text-gray-600 mb-2">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <span>January 20, 2025</span>
-                </div>
-                <div className="flex items-center text-gray-600 mb-4">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  <span>Music Hall, Agra</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-blue-500">₹399</span>
-                  <Link href="/events" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
-                    Book Now
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Subscription Card */}
-            <div className="bg-gradient-to-br from-pink-400 to-purple-500 text-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="p-6 text-center">
-                <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Ticket className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Monthly Subscription</h3>
-                <p className="text-pink-100 mb-4">
-                  Get access to all events with priority booking and member benefits
-                </p>
-                <div className="text-3xl font-bold mb-4">₹999<span className="text-lg">/month</span></div>
-                <Link href="/subscriptions" className="bg-white text-pink-500 px-6 py-2 rounded-md font-semibold hover:bg-gray-100 transition-colors">
-                  Subscribe Now
-                </Link>
-              </div>
-            </div>
+          <div className="text-center">
+            <Link 
+              href="/events"
+              className="inline-flex items-center bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              <Calendar className="h-5 w-5 mr-2" />
+              View All Events
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </Link>
           </div>
         </div>
       </section>

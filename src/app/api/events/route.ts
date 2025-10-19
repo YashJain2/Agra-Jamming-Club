@@ -19,17 +19,14 @@ const createEventSchema = z.object({
   time: z.string().min(1, 'Time is required'),
   venue: z.string().min(1, 'Venue is required'),
   address: z.string().optional(),
-  city: z.string().default('Agra'),
-  state: z.string().default('Uttar Pradesh'),
-  country: z.string().default('India'),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
   price: z.number().min(0, 'Price must be positive'),
   maxTickets: z.number().min(1, 'Max tickets must be at least 1'),
-  imageUrl: z.string().optional().transform((val) => {
-    // Convert empty string to null, or keep valid URL
-    return val && val.trim() !== '' ? val : null;
-  }),
-  gallery: z.array(z.string().url()).optional(),
-  category: z.enum(['MUSIC', 'COMEDY', 'WORKSHOP', 'CONFERENCE', 'NETWORKING', 'OTHER']).default('MUSIC'),
+  imageUrl: z.string().optional(),
+  gallery: z.array(z.string()).optional(),
+  category: z.enum(['MUSIC', 'COMEDY', 'WORKSHOP', 'CONFERENCE', 'NETWORKING', 'OTHER']).optional(),
   tags: z.array(z.string()).optional(),
   requirements: z.string().optional(),
   cancellationPolicy: z.string().optional(),
@@ -94,19 +91,26 @@ export async function GET(request: NextRequest) {
       prisma.event.count({ where }),
     ]);
 
-    // Calculate actual sold tickets for each event
+    // Calculate actual sold tickets for each event using Prisma ORM
     const eventsWithActualSoldTickets = await Promise.all(
       events.map(async (event) => {
-        const actualSoldTickets = await prisma.$queryRaw`
-          SELECT COALESCE(SUM(quantity), 0) as "totalSold"
-          FROM "Ticket" 
-          WHERE "eventId" = ${event.id} 
-          AND status IN ('CONFIRMED', 'PENDING', 'USED')
-        `;
+        const tickets = await prisma.ticket.findMany({
+          where: {
+            eventId: event.id,
+            status: {
+              in: ['CONFIRMED', 'PENDING', 'USED']
+            }
+          },
+          select: {
+            quantity: true,
+          }
+        });
+        
+        const actualSoldTickets = tickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
         
         return {
           ...event,
-          soldTickets: parseInt((actualSoldTickets[0] as any).totalSold),
+          soldTickets: actualSoldTickets,
         };
       })
     );
@@ -146,12 +150,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createEventSchema.parse(body);
 
-    // Handle empty imageUrl and convert date properly
+    // Handle date conversion properly
     const eventData = {
       ...validatedData,
       organizerId: session.user.id,
       date: new Date(validatedData.date), // validatedData.date is now already an ISO string
-      imageUrl: validatedData.imageUrl || '/api/placeholder/400/300', // Use placeholder if null
     };
 
     const event = await prisma.event.create({

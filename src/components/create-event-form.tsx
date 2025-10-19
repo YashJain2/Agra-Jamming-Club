@@ -34,23 +34,30 @@ export function CreateEventForm({ onClose, onSuccess, editEvent }: CreateEventFo
   const [formData, setFormData] = useState({
     title: editEvent?.title || '',
     description: editEvent?.description || '',
-    date: editEvent?.date ? new Date(editEvent.date).toISOString().split('T')[0] : '',
+    date: editEvent?.date ? (() => {
+      try {
+        return new Date(editEvent.date).toISOString().slice(0, 16);
+      } catch (error) {
+        console.error('Date initialization error:', error);
+        return '';
+      }
+    })() : '',
     time: editEvent?.time || '',
     venue: editEvent?.venue || '',
     address: editEvent?.address || '',
-    city: editEvent?.city || 'Agra',
-    state: editEvent?.state || 'Uttar Pradesh',
-    country: editEvent?.country || 'India',
+    city: editEvent?.city || '',
+    state: editEvent?.state || '',
+    country: editEvent?.country || '',
     price: editEvent?.price || 0,
-    maxTickets: editEvent?.maxTickets || 100,
+    maxTickets: editEvent?.maxTickets || 1,
     imageUrl: editEvent?.imageUrl || '',
     gallery: editEvent?.gallery || [] as string[],
-    category: editEvent?.category || 'MUSIC',
+    category: editEvent?.category || '',
     tags: editEvent?.tags || [] as string[],
     requirements: editEvent?.requirements || '',
     cancellationPolicy: editEvent?.cancellationPolicy || '',
     refundPolicy: editEvent?.refundPolicy || '',
-    status: editEvent?.status || 'PUBLISHED',
+    status: editEvent?.status || '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -62,8 +69,56 @@ export function CreateEventForm({ onClose, onSuccess, editEvent }: CreateEventFo
     setLoading(true);
 
     try {
+      // Validate required fields
+      if (!formData.title.trim()) {
+        alert('Title is required');
+        setLoading(false);
+        return;
+      }
+      if (!formData.venue.trim()) {
+        alert('Venue is required');
+        setLoading(false);
+        return;
+      }
+      if (!formData.date) {
+        alert('Date is required');
+        setLoading(false);
+        return;
+      }
+      if (!formData.time.trim()) {
+        alert('Time is required');
+        setLoading(false);
+        return;
+      }
+      if (!formData.category) {
+        alert('Category is required');
+        setLoading(false);
+        return;
+      }
+
       const url = editEvent ? `/api/events/${editEvent.id}` : '/api/events';
       const method = editEvent ? 'PUT' : 'POST';
+      
+      // Format the data properly for the API
+      let formattedDate;
+      try {
+        formattedDate = formData.date ? new Date(formData.date).toISOString() : new Date().toISOString();
+      } catch (error) {
+        console.error('Date parsing error:', error);
+        alert('Invalid date format');
+        setLoading(false);
+        return;
+      }
+
+      const submitData = {
+        ...formData,
+        // Ensure date is properly formatted
+        date: formattedDate,
+        // Ensure maxTickets is a number
+        maxTickets: Number(formData.maxTickets) || 1,
+        // Ensure price is a number
+        price: Number(formData.price) || 0,
+      };
       
       const response = await fetch(url, {
         method,
@@ -71,7 +126,7 @@ export function CreateEventForm({ onClose, onSuccess, editEvent }: CreateEventFo
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (response.ok) {
@@ -161,7 +216,9 @@ export function CreateEventForm({ onClose, onSuccess, editEvent }: CreateEventFo
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
               >
+                <option value="">Select Category</option>
                 <option value="MUSIC">Music</option>
                 <option value="COMEDY">Comedy</option>
                 <option value="WORKSHOP">Workshop</option>
@@ -326,12 +383,24 @@ export function CreateEventForm({ onClose, onSuccess, editEvent }: CreateEventFo
               Main Image URL
             </label>
             <input
-              type="url"
+              type="text"
               value={formData.imageUrl}
               onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="https://example.com/image.jpg"
+              placeholder="Enter image URL or paste base64 data"
             />
+            {formData.imageUrl && (
+              <div className="mt-2">
+                <img 
+                  src={formData.imageUrl} 
+                  alt="Preview" 
+                  className="w-full h-32 object-cover rounded-md border"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Tags */}
