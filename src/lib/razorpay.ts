@@ -1,15 +1,25 @@
-import Razorpay from 'razorpay';
+const Razorpay = require('razorpay');
+
+// Get Razorpay keys from environment or use live keys
+const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_live_RVI8vZGmoMul4P';
+const keySecret = process.env.RAZORPAY_KEY_SECRET || 'm6D1WwnpTGAe6GOxxtFtzcBW';
+
+console.log('Razorpay configuration:', { keyId, hasKeySecret: !!keySecret });
 
 // Initialize Razorpay instance
 export const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RVI8vZGmoMul4P',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'm6D1WwnpTGAe6GOxxtFtzcBW',
+  key_id: keyId,
+  key_secret: keySecret,
 });
+
+console.log('Razorpay instance created:', !!razorpay);
+console.log('Razorpay orders method:', typeof razorpay.orders);
+console.log('Razorpay orders create method:', typeof razorpay.orders?.create);
 
 // Razorpay configuration
 export const razorpayConfig = {
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RVI8vZGmoMul4P',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'm6D1WwnpTGAe6GOxxtFtzcBW',
+  key_id: keyId,
+  key_secret: keySecret,
   currency: 'INR',
   name: 'Agra Jamming Club',
   description: 'Musical Community Events',
@@ -34,9 +44,16 @@ export const validatePayment = async (paymentId: string, orderId: string, signat
   }
 };
 
-// Create Razorpay order
+// Create Razorpay order using REST API
 export const createRazorpayOrder = async (amount: number, currency: string = 'INR', receipt?: string) => {
   try {
+    console.log('Creating Razorpay order with:', {
+      amount: amount * 100,
+      currency,
+      receipt: receipt || `receipt_${Date.now()}`,
+      keyId: razorpayConfig.key_id,
+    });
+
     const options = {
       amount: amount * 100, // Razorpay expects amount in paise
       currency,
@@ -44,10 +61,31 @@ export const createRazorpayOrder = async (amount: number, currency: string = 'IN
       payment_capture: 1, // Auto capture payment
     };
 
-    const order = await razorpay.orders.create(options);
+    // Use REST API instead of SDK
+    const response = await fetch('https://api.razorpay.com/v1/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(`${razorpayConfig.key_id}:${razorpayConfig.key_secret}`).toString('base64')}`,
+      },
+      body: JSON.stringify(options),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Razorpay API error: ${response.status} ${response.statusText}`);
+    }
+
+    const order = await response.json();
+    console.log('Razorpay order created successfully:', order);
     return order;
   } catch (error) {
     console.error('Error creating Razorpay order:', error);
+    console.error('Error details:', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      keyId: razorpayConfig.key_id,
+      hasKeySecret: !!razorpayConfig.key_secret,
+    });
     throw error;
   }
 };
