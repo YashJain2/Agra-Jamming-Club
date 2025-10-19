@@ -61,6 +61,7 @@ interface Ticket {
   user: {
     name: string;
     email: string;
+    phone?: string;
   };
   event: {
     title: string;
