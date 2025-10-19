@@ -105,10 +105,15 @@ export async function POST(request: NextRequest) {
       guestPhone
     });
 
+    // Create a shorter receipt (max 40 characters for Razorpay)
+    const shortEventId = eventId.substring(0, 8); // Take first 8 chars of event ID
+    const timestamp = Date.now().toString().slice(-8); // Take last 8 digits of timestamp
+    const receipt = `evt_${shortEventId}_${timestamp}`; // Format: evt_12345678_12345678 (max 25 chars)
+
     const order = await createRazorpayOrder(
       totalAmount,
       'INR',
-      `event_${eventId}_${Date.now()}`
+      receipt
     );
 
     // Store order details temporarily (you might want to store this in a separate table)

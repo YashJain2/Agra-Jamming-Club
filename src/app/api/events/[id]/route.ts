@@ -33,52 +33,61 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const event = await prisma.event.findUnique({
-      where: {
-        id: id,
-        isActive: true,
-      },
-      include: {
-        organizer: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        tickets: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            tickets: true,
-          },
-        },
-      },
-    });
+    // Use raw SQL to avoid Prisma schema issues
+    const eventResult = await prisma.$queryRaw`
+      SELECT 
+        e.*,
+        o.id as "organizerId",
+        o.name as "organizerName", 
+        o.email as "organizerEmail"
+      FROM "Event" e
+      LEFT JOIN "User" o ON e."organizerId" = o.id
+      WHERE e.id = ${id} AND e."isActive" = true
+    `;
 
-    if (!event) {
+    // Get ticket count separately
+    const ticketCountResult = await prisma.$queryRaw`
+      SELECT COUNT(*) as "ticketCount"
+      FROM "Ticket" t
+      WHERE t."eventId" = ${id}
+    `;
+
+    const events = eventResult as any[];
+    if (events.length === 0) {
       return NextResponse.json(
         { error: 'Event not found' },
         { status: 404 }
       );
     }
 
+    const event = events[0];
+    const ticketCount = (ticketCountResult as any[])[0].ticketCount;
+    
+    // Format the response to match expected structure
+    const formattedEvent = {
+      ...event,
+      organizer: {
+        id: event.organizerId,
+        name: event.organizerName,
+        email: event.organizerEmail,
+      },
+      _count: {
+        tickets: parseInt(ticketCount),
+      },
+    };
+
     return NextResponse.json({
       success: true,
-      data: event,
+      data: formattedEvent,
     });
 
   } catch (error) {
     console.error('Error fetching event:', error);
+    console.error('Event ID:', id);
+    console.error('Error details:', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+    });
     return NextResponse.json(
       { error: 'Failed to fetch event' },
       { status: 500 }
