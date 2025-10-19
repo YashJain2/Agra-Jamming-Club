@@ -49,27 +49,34 @@ export default function EventsPage() {
 
   const handleBookTicket = async (eventId: string, quantity: number, isFreeAccess: boolean) => {
     try {
-      const response = await fetch('/api/tickets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          eventId,
-          quantity,
-        }),
-      });
+      // For free access (subscribers), use the direct ticket creation
+      if (isFreeAccess) {
+        const response = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            eventId,
+            quantity,
+          }),
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        alert(data.message || 'Ticket booked successfully!');
-        // Refresh events to update availability
-        fetchEvents();
-      } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to book ticket');
+        if (response.ok) {
+          const data = await response.json();
+          alert(data.message || 'Free ticket booked successfully!');
+          fetchEvents();
+        } else {
+          const error = await response.json();
+          alert(error.error || 'Failed to book free ticket');
+        }
+        return;
       }
+
+      // For paid tickets, redirect to Razorpay payment flow
+      // This will be handled by the RazorpayPayment component
+      alert('Please use the "Book Now" button to proceed with payment');
     } catch (error) {
       console.error('Error booking ticket:', error);
       alert('An error occurred while booking the ticket');

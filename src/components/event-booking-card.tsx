@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, Users, Ticket, Crown, Gift } from 'lucide-react';
+import RazorpayPayment from './razorpay-payment';
 
 interface Event {
   id: string;
@@ -179,65 +180,69 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
 
         {/* Booking Section */}
         <div className="border-t pt-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity
-              </label>
-              <select
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                disabled={loading}
-              >
-                {Array.from({ length: Math.min(10, availableTickets) }, (_, i) => i + 1).map(num => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="text-right">
-              <div className="text-sm text-gray-600">Total Price</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {canAccessForFree ? (
-                  <span className="text-green-600">FREE</span>
-                ) : (
-                  `₹${totalPrice}`
-                )}
-              </div>
-              {canAccessForFree && (
-                <div className="text-xs text-gray-500 line-through">
-                  ₹{event.price * quantity}
+          {canAccessForFree ? (
+            // Free access booking
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Quantity
+                  </label>
+                  <select
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value))}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    disabled={loading}
+                  >
+                    {Array.from({ length: Math.min(10, availableTickets) }, (_, i) => i + 1).map(num => (
+                      <option key={num} value={num}>{num}</option>
+                    ))}
+                  </select>
                 </div>
-              )}
-            </div>
-          </div>
+                
+                <div className="text-right">
+                  <div className="text-sm text-gray-600">Total Price</div>
+                  <div className="text-2xl font-bold text-green-600">FREE</div>
+                  <div className="text-xs text-gray-500 line-through">
+                    ₹{event.price * quantity}
+                  </div>
+                </div>
+              </div>
 
-          <button
-            onClick={handleBookTicket}
-            disabled={loading || availableTickets === 0}
-            className={`w-full py-3 px-4 rounded-md font-medium transition-colors ${
-              canAccessForFree
-                ? 'bg-green-600 hover:bg-green-700 text-white'
-                : 'bg-purple-600 hover:bg-purple-700 text-white'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-          >
-            {loading ? (
-              'Booking...'
-            ) : availableTickets === 0 ? (
-              'Sold Out'
-            ) : canAccessForFree ? (
-              <div className="flex items-center justify-center">
-                <Crown className="h-4 w-4 mr-2" />
-                Book Free Ticket
-              </div>
-            ) : (
-              <div className="flex items-center justify-center">
-                <Ticket className="h-4 w-4 mr-2" />
-                Book Ticket - ₹{totalPrice}
-              </div>
-            )}
-          </button>
+              <button
+                onClick={handleBookTicket}
+                disabled={loading || availableTickets === 0}
+                className="w-full py-3 px-4 rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  'Booking...'
+                ) : availableTickets === 0 ? (
+                  'Sold Out'
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <Crown className="h-4 w-4 mr-2" />
+                    Book Free Ticket
+                  </div>
+                )}
+              </button>
+            </div>
+          ) : (
+            // Paid ticket booking with Razorpay
+            <RazorpayPayment
+              eventId={event.id}
+              eventTitle={event.title}
+              price={event.price}
+              maxTickets={event.maxTickets}
+              soldTickets={event.soldTickets}
+              onPaymentSuccess={(ticket) => {
+                alert('Payment successful! Your tickets have been booked.');
+                // You can add additional success handling here
+              }}
+              onPaymentError={(error) => {
+                alert(`Payment failed: ${error}`);
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

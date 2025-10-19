@@ -9,6 +9,7 @@ export const razorpay = new Razorpay({
 // Razorpay configuration
 export const razorpayConfig = {
   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RVI8vZGmoMul4P',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'm6D1WwnpTGAe6GOxxtFtzcBW',
   currency: 'INR',
   name: 'Agra Jamming Club',
   description: 'Musical Community Events',
