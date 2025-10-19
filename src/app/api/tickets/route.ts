@@ -45,37 +45,52 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
+    // Use Prisma ORM with includes for better reliability
     const tickets = await prisma.ticket.findMany({
-      where,
+      where: {
+        userId: session.user.id,
+        ...(eventId && { eventId }),
+        ...(status && { status }),
+      },
       include: {
-        event: {
-          select: {
-            id: true,
-            title: true,
-            date: true,
-            time: true,
-            venue: true,
-            price: true,
-            imageUrl: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
+        event: true,
+        user: true
       },
       orderBy: {
-        createdAt: 'desc',
-      },
+        createdAt: 'desc'
+      }
     });
+
+    // Format the response to match expected structure
+    const formattedTickets = tickets.map(ticket => ({
+      id: ticket.id,
+      userId: ticket.userId,
+      eventId: ticket.eventId,
+      quantity: ticket.quantity,
+      totalPrice: ticket.totalPrice,
+      status: ticket.status,
+      specialRequests: ticket.specialRequests,
+      createdAt: ticket.createdAt,
+      event: {
+        id: ticket.event.id,
+        title: ticket.event.title,
+        date: ticket.event.date,
+        time: ticket.event.time,
+        venue: ticket.event.venue,
+        price: ticket.event.price,
+        imageUrl: ticket.event.imageUrl,
+      },
+      user: ticket.user ? {
+        id: ticket.user.id,
+        name: ticket.user.name,
+        email: ticket.user.email,
+        phone: ticket.user.phone,
+      } : null,
+    }));
 
     return NextResponse.json({
       success: true,
-      data: tickets,
+      data: formattedTickets,
     });
 
   } catch (error) {
@@ -199,57 +214,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create ticket using raw SQL to handle missing columns
-    const ticketId = `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    await prisma.$executeRaw`
-      INSERT INTO "Ticket" (
-        id, "userId", "eventId", quantity, "totalPrice", 
-        "specialRequests", status, "isGuestTicket", 
-        "guestName", "guestEmail", "guestPhone", 
-        "isFreeAccess", "subscriptionId", "createdAt", "updatedAt"
-      ) VALUES (
-        ${ticketId}, ${userId}, ${eventId}, ${quantity}, ${totalPrice},
-        ${specialRequests || null}, 'PENDING', ${Boolean(isGuestCheckout)},
-        ${isGuestCheckout ? guestName : null}, 
-        ${isGuestCheckout ? guestEmail : null}, 
-        ${isGuestCheckout ? guestPhone : null},
-        ${isFreeAccess}, ${subscriptionInfo?.subscriptionId || null}, NOW(), NOW()
-      )
-    `;
+    // Create ticket using Prisma ORM
+    const ticket = await prisma.ticket.create({
+      data: {
+        userId: userId,
+        eventId: eventId,
+        quantity: quantity,
+        totalPrice: totalPrice,
+        specialRequests: specialRequests || null,
+        status: 'PENDING',
+      },
+    });
 
     // Get the created ticket with event and user details
-    const ticket = await prisma.$queryRaw`
-      SELECT 
-        t.id,
-        t."userId",
-        t."eventId",
-        t.quantity,
-        t."totalPrice",
-        t.status,
-        t."specialRequests",
-        t."isGuestTicket",
-        t."guestName",
-        t."guestEmail",
-        t."guestPhone",
-        t."isFreeAccess",
-        t."subscriptionId",
-        t."createdAt",
-        e.title as "eventTitle",
-        e.date as "eventDate",
-        e.time as "eventTime",
-        e.venue as "eventVenue",
-        e.price as "eventPrice",
-        u.name as "userName",
-        u.email as "userEmail",
-        u.phone as "userPhone"
-      FROM "Ticket" t
-      LEFT JOIN "Event" e ON t."eventId" = e.id
-      LEFT JOIN "User" u ON t."userId" = u.id
-      WHERE t.id = ${ticketId}
-    `;
-
-    const createdTicket = ticket[0];
+    const createdTicket = await prisma.ticket.findUnique({
+      where: { id: ticket.id },
+      include: {
+        event: true,
+        user: true
+      }
+    });
 
     // Generate QR code for the ticket
     const qrData = JSON.stringify({
@@ -262,11 +246,10 @@ export async function POST(request: NextRequest) {
     const qrCode = await QRCode.toDataURL(qrData);
     
     // Update ticket with QR code
-    await prisma.$executeRaw`
-      UPDATE "Ticket" 
-      SET "qrCode" = ${qrCode}
-      WHERE id = ${ticketId}
-    `;
+    await prisma.ticket.update({
+      where: { id: createdTicket.id },
+      data: { qrCode: qrCode }
+    });
 
     // Format the response
     const formattedTicket = {
@@ -277,27 +260,21 @@ export async function POST(request: NextRequest) {
       totalPrice: createdTicket.totalPrice,
       status: createdTicket.status,
       specialRequests: createdTicket.specialRequests,
-      isGuestTicket: createdTicket.isGuestTicket,
-      guestName: createdTicket.guestName,
-      guestEmail: createdTicket.guestEmail,
-      guestPhone: createdTicket.guestPhone,
-      isFreeAccess: createdTicket.isFreeAccess,
-      subscriptionId: createdTicket.subscriptionId,
       createdAt: createdTicket.createdAt,
       qrCode: qrCode,
       event: {
-        id: createdTicket.eventId,
-        title: createdTicket.eventTitle,
-        date: createdTicket.eventDate,
-        time: createdTicket.eventTime,
-        venue: createdTicket.eventVenue,
-        price: createdTicket.eventPrice,
+        id: createdTicket.event.id,
+        title: createdTicket.event.title,
+        date: createdTicket.event.date,
+        time: createdTicket.event.time,
+        venue: createdTicket.event.venue,
+        price: createdTicket.event.price,
       },
-      user: createdTicket.userId ? {
-        id: createdTicket.userId,
-        name: createdTicket.userName,
-        email: createdTicket.userEmail,
-        phone: createdTicket.userPhone,
+      user: createdTicket.user ? {
+        id: createdTicket.user.id,
+        name: createdTicket.user.name,
+        email: createdTicket.user.email,
+        phone: createdTicket.user.phone,
       } : null,
     };
 

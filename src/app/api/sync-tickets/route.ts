@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       success: true,
       message: 'Event sold tickets synced with actual ticket data',
       updates: updates,
-      verification: updatedEvents.map((event: any) => ({
+      verification: (updatedEvents as any[]).map((event: any) => ({
         id: event.id,
         title: event.title,
         soldTickets: event.soldTickets,

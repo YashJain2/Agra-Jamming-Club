@@ -116,7 +116,6 @@ model Subscription {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan        SubscriptionPlan @relation(fields: [planId], references: [id])
   payments    Payment[]
-  tickets     Ticket[]  // Tickets that used this subscription for free access
   
   @@map("subscriptions")
 }
@@ -160,21 +159,12 @@ model Ticket {
   qrCode      String?   // QR code for verification
   seatNumbers String[]  // Array of seat numbers if applicable
   specialRequests String?
-  // Guest ticket fields
-  guestName   String?   // For guest tickets
-  guestEmail  String?   // For guest tickets
-  guestPhone  String?   // For guest tickets
-  isGuestTicket Boolean @default(false)
-  // Subscription fields
-  isFreeAccess Boolean @default(false) // True if ticket was free due to subscription
-  subscriptionId String? // Reference to subscription that provided free access
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
   // Relations
   user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
   payments    Payment[]
   
   @@map("tickets")

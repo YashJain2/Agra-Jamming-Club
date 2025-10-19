@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const { eventId, quantity, specialRequests, guestName, guestEmail, guestPhone } = validatedData;
 
     // Determine if this is a guest checkout or authenticated user
-    const isGuestCheckout = !session && guestName && guestEmail && guestPhone;
+    const isGuestCheckout = !session && !!(guestName && guestEmail && guestPhone);
     
     if (!session && !isGuestCheckout) {
       return NextResponse.json(
@@ -54,8 +54,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if there are enough tickets available
-    const availableTickets = event.maxTickets - event.soldTickets;
+    // Check if there are enough tickets available (real-time calculation)
+    const soldTicketsResult = await prisma.ticket.findMany({
+      where: {
+        eventId: eventId,
+        status: {
+          in: ['CONFIRMED', 'PENDING', 'USED']
+        }
+      },
+      select: {
+        quantity: true,
+      }
+    });
+    
+    const actualSoldTickets = soldTicketsResult.reduce((sum, ticket) => sum + ticket.quantity, 0);
+    const availableTickets = event.maxTickets - actualSoldTickets;
+    
+    console.log('Ticket availability check:', {
+      eventId,
+      maxTickets: event.maxTickets,
+      actualSoldTickets,
+      availableTickets,
+      requestedQuantity: quantity,
+    });
+    
     if (availableTickets < quantity) {
       return NextResponse.json(
         { error: `Only ${availableTickets} tickets available` },

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Music, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Music, Eye, EyeOff, Loader2, Gift, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 
 export default function SignUpPage() {
@@ -17,7 +17,56 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [guestPurchases, setGuestPurchases] = useState<any>(null);
+  const [checkingGuestPurchases, setCheckingGuestPurchases] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Check for guest purchases when email changes
+  useEffect(() => {
+    const checkGuestPurchases = async () => {
+      if (formData.email && formData.email.includes('@')) {
+        setCheckingGuestPurchases(true);
+        try {
+          const response = await fetch(`/api/auth/link-guest-account?email=${encodeURIComponent(formData.email)}`);
+          const data = await response.json();
+          
+          if (data.success && data.hasGuestPurchases) {
+            setGuestPurchases(data);
+            // Pre-fill name if available
+            if (data.guestUser.name && !formData.name) {
+              setFormData(prev => ({ ...prev, name: data.guestUser.name }));
+            }
+          } else {
+            setGuestPurchases(null);
+          }
+        } catch (error) {
+          console.error('Error checking guest purchases:', error);
+          setGuestPurchases(null);
+        } finally {
+          setCheckingGuestPurchases(false);
+        }
+      } else {
+        setGuestPurchases(null);
+      }
+    };
+
+    const timeoutId = setTimeout(checkGuestPurchases, 500); // Debounce
+    return () => clearTimeout(timeoutId);
+  }, [formData.email]);
+
+  // Pre-fill form from URL parameters
+  useEffect(() => {
+    const email = searchParams.get('email');
+    const name = searchParams.get('name');
+    
+    if (email) {
+      setFormData(prev => ({ ...prev, email }));
+    }
+    if (name) {
+      setFormData(prev => ({ ...prev, name }));
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,28 +93,50 @@ export default function SignUpPage() {
     });
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          phone: formData.phone,
-        }),
-      });
+      let response;
+      
+      if (guestPurchases) {
+        // Link guest account
+        console.log('Linking guest account with purchases...');
+        response = await fetch('/api/auth/link-guest-account', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            name: formData.name,
+            password: formData.password,
+          }),
+        });
+      } else {
+        // Regular signup
+        console.log('Creating new account...');
+        response = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            phone: formData.phone,
+          }),
+        });
+      }
 
       const data = await response.json();
       
       if (response.ok) {
-        console.log('Sign up successful:', data);
-        // Redirect to home page
-        router.push('/?message=Account created successfully. Please sign in.');
+        console.log('Account creation successful:', data);
+        const message = guestPurchases 
+          ? 'Account created and linked to your previous purchases! Please sign in.'
+          : 'Account created successfully. Please sign in.';
+        router.push(`/?message=${encodeURIComponent(message)}`);
       } else {
-        console.error('Sign up failed:', data);
-        setError(data.error || 'Sign up failed');
+        console.error('Account creation failed:', data);
+        setError(data.error || 'Account creation failed');
       }
     } catch (error) {
       console.error('Sign up error:', error);
@@ -130,6 +201,31 @@ export default function SignUpPage() {
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
                 placeholder="Enter your email"
               />
+              {checkingGuestPurchases && (
+                <div className="mt-2 text-sm text-blue-600 flex items-center">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Checking for previous purchases...
+                </div>
+              )}
+              {guestPurchases && (
+                <div className="mt-3 bg-green-50 border border-green-200 rounded-md p-4">
+                  <div className="flex items-start">
+                    <Gift className="h-5 w-5 text-green-600 mt-0.5 mr-3" />
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-green-800 mb-2">
+                        🎉 Great news! We found your previous purchases
+                      </h3>
+                      <div className="text-sm text-green-700 space-y-1">
+                        <p>• {guestPurchases.purchases.tickets} event ticket(s)</p>
+                        <p>• {guestPurchases.purchases.subscriptions} subscription(s)</p>
+                      </div>
+                      <p className="text-xs text-green-600 mt-2">
+                        Creating an account will link all your previous purchases to this new account.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -217,6 +313,8 @@ export default function SignUpPage() {
               >
                 {loading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
+                ) : guestPurchases ? (
+                  'Create Account & Link Purchases'
                 ) : (
                   'Create Account'
                 )}

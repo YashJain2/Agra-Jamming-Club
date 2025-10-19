@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Check, Star, Calendar, Users, Music, Gift, Crown, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Check, Star, Calendar, Users, Music, Gift, Crown, Clock, CheckCircle, XCircle, User } from 'lucide-react';
+import GuestSubscriptionForm from '@/components/guest-subscription-form';
 
 interface Subscription {
   id: string;
@@ -22,6 +23,7 @@ export default function SubscriptionsPage() {
   const { data: session, status } = useSession();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showGuestForm, setShowGuestForm] = useState(false);
 
   const user = session?.user;
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
@@ -217,7 +219,7 @@ export default function SubscriptionsPage() {
                       View Dashboard
                     </Link>
                   </div>
-                ) : (
+                ) : session ? (
                   <div className="space-y-4">
                     <Link 
                       href="/subscriptions/checkout"
@@ -228,6 +230,26 @@ export default function SubscriptionsPage() {
                     <p className="text-sm text-gray-500">
                       Cancel anytime • No long-term commitment
                     </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <button
+                      onClick={() => setShowGuestForm(true)}
+                      className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors inline-block"
+                    >
+                      Subscribe as Guest
+                    </button>
+                    <p className="text-sm text-gray-500">
+                      No account required • Cancel anytime
+                    </p>
+                    <div className="text-center">
+                      <Link 
+                        href="/auth/signin"
+                        className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+                      >
+                        Already have an account? Sign in
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
@@ -359,14 +381,48 @@ export default function SubscriptionsPage() {
           <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
             Start your subscription today and become part of Agra&apos;s most vibrant musical community.
           </p>
-          <Link 
-            href="/subscriptions/checkout"
-            className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
-          >
-            Start Your Subscription
-          </Link>
+          {session ? (
+            <Link 
+              href="/subscriptions/checkout"
+              className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
+            >
+              Start Your Subscription
+            </Link>
+          ) : (
+            <button
+              onClick={() => setShowGuestForm(true)}
+              className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
+            >
+              Subscribe as Guest
+            </button>
+          )}
         </div>
       </section>
+
+      {/* Guest Subscription Form Modal */}
+      {showGuestForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <GuestSubscriptionForm
+              plan={{
+                id: 'monthly-plan', // You'll need to get this from your subscription plans API
+                name: 'Monthly Membership',
+                price: 999,
+                duration: 1,
+                description: 'Perfect for music lovers who want to be part of our community',
+                features: features,
+                isActive: true,
+              }}
+              onSuccess={(subscription) => {
+                console.log('Subscription successful:', subscription);
+                setShowGuestForm(false);
+                // You can show a success message or redirect
+              }}
+              onCancel={() => setShowGuestForm(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

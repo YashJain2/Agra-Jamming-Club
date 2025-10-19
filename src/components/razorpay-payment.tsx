@@ -141,6 +141,25 @@ export default function RazorpayPayment({
 
             if (verifyData.success) {
               onPaymentSuccess?.(verifyData.data);
+              
+              // Redirect to success page for guest checkout
+              if (isGuestCheckout) {
+                const successUrl = `/success/ticket?` + new URLSearchParams({
+                  ticketId: verifyData.data.id,
+                  eventTitle: eventTitle,
+                  eventDate: verifyData.data.event?.date || '',
+                  eventTime: verifyData.data.event?.time || '',
+                  eventVenue: verifyData.data.event?.venue || '',
+                  quantity: verifyData.data.quantity.toString(),
+                  totalPrice: verifyData.data.totalPrice.toString(),
+                  guestName: guestDetails.name,
+                  guestEmail: guestDetails.email,
+                }).toString();
+                
+                setTimeout(() => {
+                  window.location.href = successUrl;
+                }, 2000);
+              }
             } else {
               onPaymentError?.(verifyData.error || 'Payment verification failed');
             }

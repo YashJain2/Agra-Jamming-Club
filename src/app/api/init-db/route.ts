@@ -241,7 +241,7 @@ export async function GET() {
             admin: { email: 'admin@agrajammingclub.com', password: 'admin123' },
             user: { email: 'user@agrajammingclub.com', password: 'user123' }
           },
-          eventsFixed: events.length,
+          eventsFixed: (events as any[]).length,
           ticketSyncUpdates: updates
         });
 
