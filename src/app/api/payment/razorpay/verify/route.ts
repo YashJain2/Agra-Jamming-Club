@@ -138,27 +138,34 @@ export async function POST(request: NextRequest) {
     let ticketUserId = orderData.userId;
     
     if (orderData.isGuestCheckout && !orderData.userId) {
-      // For guest tickets, we'll use a special guest user ID
-      // First, let's check if a guest user exists
-      const guestUser = await prisma.user.findFirst({
-        where: { email: 'guest@agrajammingclub.com' }
+      // For guest tickets, create a user with the actual guest details
+      console.log('🔍 Creating guest user with details:', {
+        name: orderData.guestName,
+        email: orderData.guestEmail,
+        phone: orderData.guestPhone
       });
       
-      if (!guestUser) {
-        // Create a guest user
+      // Check if a user with this email already exists
+      const existingUser = await prisma.user.findFirst({
+        where: { email: orderData.guestEmail }
+      });
+      
+      if (existingUser) {
+        ticketUserId = existingUser.id;
+        console.log('✅ Using existing user:', ticketUserId);
+      } else {
+        // Create a new user with guest details
         const newGuestUser = await prisma.user.create({
           data: {
-            email: 'guest@agrajammingclub.com',
-            name: 'Guest User',
+            email: orderData.guestEmail,
+            name: orderData.guestName,
+            phone: orderData.guestPhone,
             role: 'USER',
             password: null, // No password for guest user
           }
         });
         ticketUserId = newGuestUser.id;
-        console.log('✅ Created guest user:', ticketUserId);
-      } else {
-        ticketUserId = guestUser.id;
-        console.log('✅ Using existing guest user:', ticketUserId);
+        console.log('✅ Created new guest user:', ticketUserId);
       }
     }
     
@@ -187,15 +194,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const userDetails = orderData.userId ? await prisma.user.findUnique({
-      where: { id: orderData.userId },
+    const userDetails = await prisma.user.findUnique({
+      where: { id: ticketUserId },
       select: {
         id: true,
         name: true,
         email: true,
         phone: true,
       },
-    }) : null;
+    });
 
     // Generate QR code for the ticket
     console.log('🔲 Generating QR code...');
