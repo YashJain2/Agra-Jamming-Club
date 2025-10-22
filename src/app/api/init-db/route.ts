@@ -219,11 +219,6 @@ export async function GET() {
           success: true,
           message: 'Database initialized successfully!',
           adminUser: { email: adminUser.email, role: adminUser.role },
-          regularUser: { email: regularUser.email, role: regularUser.role },
-          testCredentials: {
-            admin: { email: 'admin@agrajammingclub.com', password: 'admin123' },
-            user: { email: 'user@agrajammingclub.com', password: 'user123' }
-          },
           eventsFixed: (events as any[]).length,
           ticketSyncUpdates: updates
         });
