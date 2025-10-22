@@ -26,9 +26,15 @@ export async function POST(request: NextRequest) {
     const { eventId, quantity, specialRequests, guestName, guestEmail, guestPhone } = validatedData;
 
     // Determine if this is a guest checkout or authenticated user
-    const isGuestCheckout = !session && !!(guestName && guestEmail && guestPhone);
+    // If no session, treat as guest checkout with default details if not provided
+    const isGuestCheckout = !session;
     
-    if (!session && !isGuestCheckout) {
+    // Provide default guest details if not provided and no session
+    const finalGuestName = guestName || (isGuestCheckout ? 'Guest User' : undefined);
+    const finalGuestEmail = guestEmail || (isGuestCheckout ? 'guest@example.com' : undefined);
+    const finalGuestPhone = guestPhone || (isGuestCheckout ? '0000000000' : undefined);
+    
+    if (!session && !finalGuestName && !finalGuestEmail && !finalGuestPhone) {
       return NextResponse.json(
         { error: 'Either sign in or provide guest details' },
         { status: 400 }
@@ -122,9 +128,9 @@ export async function POST(request: NextRequest) {
       quantity,
       totalAmount,
       isGuestCheckout,
-      guestName,
-      guestEmail,
-      guestPhone
+      guestName: finalGuestName,
+      guestEmail: finalGuestEmail,
+      guestPhone: finalGuestPhone
     });
 
     // Create a shorter receipt (max 40 characters for Razorpay)
@@ -145,9 +151,9 @@ export async function POST(request: NextRequest) {
       quantity,
       totalAmount,
       specialRequests,
-      guestName,
-      guestEmail,
-      guestPhone,
+      guestName: finalGuestName,
+      guestEmail: finalGuestEmail,
+      guestPhone: finalGuestPhone,
       userId: session?.user.id || null,
       isGuestCheckout,
       createdAt: new Date(),
