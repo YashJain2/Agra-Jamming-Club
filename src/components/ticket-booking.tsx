@@ -64,8 +64,11 @@ export function TicketBooking({ event }: TicketBookingProps) {
   };
 
   const handleBooking = async () => {
+    // Determine if this should be guest checkout
+    const shouldUseGuestCheckout = !session || isGuestCheckout;
+    
     // Validate guest details if guest checkout
-    if (isGuestCheckout) {
+    if (shouldUseGuestCheckout) {
       if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
         alert('Please fill in all customer details');
         return;
@@ -91,9 +94,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
         body: JSON.stringify({
           eventId: event.id,
           quantity: ticketQuantity,
-          guestName: isGuestCheckout ? customerInfo.name : undefined,
-          guestEmail: isGuestCheckout ? customerInfo.email : undefined,
-          guestPhone: isGuestCheckout ? customerInfo.phone : undefined,
+          guestName: shouldUseGuestCheckout ? customerInfo.name : undefined,
+          guestEmail: shouldUseGuestCheckout ? customerInfo.email : undefined,
+          guestPhone: shouldUseGuestCheckout ? customerInfo.phone : undefined,
         }),
       });
 
@@ -219,20 +222,25 @@ export function TicketBooking({ event }: TicketBookingProps) {
               <h3 className="text-lg font-semibold text-gray-900">Customer Information</h3>
               
               {/* Guest Checkout Toggle */}
-              {!session && (
-                <div className="mb-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={isGuestCheckout}
-                      onChange={(e) => setIsGuestCheckout(e.target.checked)}
-                      className="mr-2"
-                      disabled={isProcessing}
-                    />
-                    <span className="text-sm text-gray-700">Checkout as guest</span>
-                  </label>
-                </div>
-              )}
+              <div className="mb-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={isGuestCheckout}
+                    onChange={(e) => setIsGuestCheckout(e.target.checked)}
+                    className="mr-2"
+                    disabled={isProcessing}
+                  />
+                  <span className="text-sm text-gray-700">
+                    {session ? 'Use guest checkout instead of account' : 'Checkout as guest'}
+                  </span>
+                </label>
+                {session && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    You're signed in as {session.user?.email}. Check this box to checkout as guest instead.
+                  </p>
+                )}
+              </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
