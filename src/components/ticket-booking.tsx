@@ -100,9 +100,20 @@ export function TicketBooking({ event }: TicketBookingProps) {
         }),
       });
 
+      console.log('Payment order response status:', orderResponse.status);
+      console.log('Payment order response headers:', orderResponse.headers);
+      
+      if (!orderResponse.ok) {
+        console.error('Payment order HTTP error:', orderResponse.status, orderResponse.statusText);
+        alert(`Payment order failed: ${orderResponse.status} ${orderResponse.statusText}`);
+        return;
+      }
+      
       const orderData = await orderResponse.json();
+      console.log('Payment order response data:', orderData);
 
       if (!orderData.success) {
+        console.error('Payment order failed:', orderData);
         alert(orderData.error || 'Failed to create payment order');
         return;
       }
