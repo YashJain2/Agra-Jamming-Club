@@ -53,10 +53,10 @@ export default function SignInPage() {
             <Music className="h-12 w-12 text-white" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-white">
-            Sign in to Admin Panel
+            Sign in to Agra Jamming Club
           </h2>
           <p className="mt-2 text-sm text-purple-100">
-            Access the Agra Jamming Club management system
+            Welcome back! Sign in to your account
           </p>
         </div>
 
@@ -131,7 +131,7 @@ export default function SignInPage() {
 
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                Contact administrator for access credentials
+                Need help? Contact us for support
               </p>
             </div>
           </form>
