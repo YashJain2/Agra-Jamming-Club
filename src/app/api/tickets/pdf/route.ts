@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     // 3. This is a guest ticket (no session required for guest tickets)
     const hasAccess = 
       (session && (ticket.userId === session.user.id || ['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(session.user.role))) ||
-      (!session && !ticket.user.password); // Guest ticket (no password means guest)
+      (!session && ticket.user && !ticket.user.password); // Guest ticket (no password means guest)
 
     if (!hasAccess) {
       return NextResponse.json(
