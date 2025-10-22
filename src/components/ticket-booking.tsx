@@ -70,7 +70,21 @@ export function TicketBooking({ event }: TicketBookingProps) {
     // Validate guest details if guest checkout
     if (shouldUseGuestCheckout) {
       if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
-        alert('Please fill in all customer details');
+        alert('Please fill in all customer details (name, email, phone)');
+        return;
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(customerInfo.email)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+      
+      // Validate phone number
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!phoneRegex.test(customerInfo.phone)) {
+        alert('Please enter a valid 10-digit phone number');
         return;
       }
     }
@@ -264,6 +278,7 @@ export function TicketBooking({ event }: TicketBookingProps) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Enter your full name"
                   disabled={isProcessing}
+                  required
                 />
               </div>
 
@@ -278,6 +293,7 @@ export function TicketBooking({ event }: TicketBookingProps) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Enter your email"
                   disabled={isProcessing}
+                  required
                 />
               </div>
 
@@ -290,8 +306,11 @@ export function TicketBooking({ event }: TicketBookingProps) {
                   value={customerInfo.phone}
                   onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  placeholder="Enter your phone number"
+                  placeholder="Enter your 10-digit phone number"
                   disabled={isProcessing}
+                  required
+                  pattern="[0-9]{10}"
+                  title="Please enter a 10-digit phone number"
                 />
               </div>
             </div>

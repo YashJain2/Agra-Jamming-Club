@@ -26,19 +26,34 @@ export async function POST(request: NextRequest) {
     const { eventId, quantity, specialRequests, guestName, guestEmail, guestPhone } = validatedData;
 
     // Determine if this is a guest checkout or authenticated user
-    // If no session, treat as guest checkout with default details if not provided
     const isGuestCheckout = !session;
     
-    // Provide default guest details if not provided and no session
-    const finalGuestName = guestName || (isGuestCheckout ? 'Guest User' : undefined);
-    const finalGuestEmail = guestEmail || (isGuestCheckout ? 'guest@example.com' : undefined);
-    const finalGuestPhone = guestPhone || (isGuestCheckout ? '0000000000' : undefined);
-    
-    if (!session && !finalGuestName && !finalGuestEmail && !finalGuestPhone) {
-      return NextResponse.json(
-        { error: 'Either sign in or provide guest details' },
-        { status: 400 }
-      );
+    // For guest checkout, require all guest details to be provided
+    if (isGuestCheckout) {
+      if (!guestName || !guestEmail || !guestPhone) {
+        return NextResponse.json(
+          { error: 'Please provide all guest details (name, email, phone) for guest checkout' },
+          { status: 400 }
+        );
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestEmail)) {
+        return NextResponse.json(
+          { error: 'Please provide a valid email address' },
+          { status: 400 }
+        );
+      }
+      
+      // Validate phone number (basic validation)
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!phoneRegex.test(guestPhone)) {
+        return NextResponse.json(
+          { error: 'Please provide a valid 10-digit phone number' },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if event exists and is available
@@ -128,9 +143,9 @@ export async function POST(request: NextRequest) {
       quantity,
       totalAmount,
       isGuestCheckout,
-      guestName: finalGuestName,
-      guestEmail: finalGuestEmail,
-      guestPhone: finalGuestPhone
+      guestName,
+      guestEmail,
+      guestPhone
     });
 
     // Create a shorter receipt (max 40 characters for Razorpay)
@@ -151,9 +166,9 @@ export async function POST(request: NextRequest) {
       quantity,
       totalAmount,
       specialRequests,
-      guestName: finalGuestName,
-      guestEmail: finalGuestEmail,
-      guestPhone: finalGuestPhone,
+      guestName,
+      guestEmail,
+      guestPhone,
       userId: session?.user.id || null,
       isGuestCheckout,
       createdAt: new Date(),
