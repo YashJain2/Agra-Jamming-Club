@@ -155,6 +155,14 @@ export async function POST(request: NextRequest) {
         console.log('✅ Using existing user:', ticketUserId);
       } else {
         // Create a new user with guest details
+        if (!orderData.guestEmail || !orderData.guestName || !orderData.guestPhone) {
+          console.error('❌ Missing guest details:', orderData);
+          return NextResponse.json(
+            { error: 'Missing guest details for ticket creation' },
+            { status: 400 }
+          );
+        }
+        
         const newGuestUser = await prisma.user.create({
           data: {
             email: orderData.guestEmail,
