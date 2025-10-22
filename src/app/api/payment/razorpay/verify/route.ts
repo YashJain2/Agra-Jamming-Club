@@ -202,6 +202,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (!ticketUserId) {
+      console.error('❌ No user ID available for ticket');
+      return NextResponse.json(
+        { error: 'Unable to determine user for ticket creation' },
+        { status: 500 }
+      );
+    }
+
     const userDetails = await prisma.user.findUnique({
       where: { id: ticketUserId },
       select: {
