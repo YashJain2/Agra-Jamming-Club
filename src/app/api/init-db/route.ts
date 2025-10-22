@@ -155,44 +155,27 @@ export async function GET() {
       console.log('Tables might already exist or error creating them:', tableError);
     }
     
-    // Create admin user
-    const adminEmail = 'admin@agrajammingclub.com';
-    const userEmail = 'user@agrajammingclub.com';
+    // Create admin user using environment variables
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@agrajammingclub.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminPhone = process.env.ADMIN_PHONE || '9876543210';
 
     let adminUser = await prisma.user.findUnique({ where: { email: adminEmail } });
     if (!adminUser) {
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
       adminUser = await prisma.user.create({
         data: {
           name: 'Admin User',
           email: adminEmail,
           password: hashedPassword,
-          phone: '9876543210',
+          phone: adminPhone,
           role: 'SUPER_ADMIN',
           isActive: true,
         },
       });
-      console.log('Admin user created:', adminUser.email);
+      console.log('Admin user created');
     } else {
-      console.log('Admin user already exists:', adminUser.email);
-    }
-
-    let regularUser = await prisma.user.findUnique({ where: { email: userEmail } });
-    if (!regularUser) {
-      const hashedPassword = await bcrypt.hash('user123', 10);
-      regularUser = await prisma.user.create({
-        data: {
-          name: 'Regular User',
-          email: userEmail,
-          password: hashedPassword,
-          phone: '8077037849',
-          role: 'USER',
-          isActive: true,
-        },
-      });
-      console.log('Regular user created:', regularUser.email);
-    } else {
-      console.log('Regular user already exists:', regularUser.email);
+      console.log('Admin user already exists');
     }
 
         // Fix event sold tickets to match actual ticket data

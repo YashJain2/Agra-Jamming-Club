@@ -1,8 +1,8 @@
 const Razorpay = require('razorpay');
 
 // Get Razorpay keys from environment or use live keys
-const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_live_RVI8vZGmoMul4P';
-const keySecret = process.env.RAZORPAY_KEY_SECRET || 'm6D1WwnpTGAe6GOxxtFtzcBW';
+const keyId = process.env.RAZORPAY_KEY_ID;
+const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
 console.log('Razorpay configuration:', { keyId, hasKeySecret: !!keySecret });
 

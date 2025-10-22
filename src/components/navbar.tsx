@@ -42,6 +42,9 @@ export function Navbar() {
               <Link href="/subscriptions" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Subscriptions
               </Link>
+              <Link href="/guest-tickets" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                My Tickets
+              </Link>
               <div className="flex items-center space-x-3">
                 <Link href="/auth/signup" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Sign Up
@@ -86,6 +89,11 @@ export function Navbar() {
             <Link href="/subscriptions" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Subscriptions
             </Link>
+            {user && (
+              <Link href="/my-tickets" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                My Tickets
+              </Link>
+            )}
             {isAdmin && (
               <Link href="/admin" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Admin

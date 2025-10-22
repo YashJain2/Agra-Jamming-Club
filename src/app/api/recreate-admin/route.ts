@@ -8,8 +8,9 @@ export async function GET() {
   try {
     console.log('Recreating admin user with correct password...');
     
-    const adminEmail = 'admin@agrajammingclub.com';
-    const adminPassword = 'admin123';
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@agrajammingclub.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminPhone = process.env.ADMIN_PHONE || '9876543210';
     
     // Delete existing admin user if exists
     await prisma.user.deleteMany({
@@ -23,7 +24,7 @@ export async function GET() {
         name: 'Admin User',
         email: adminEmail,
         password: hashedPassword,
-        phone: '9876543210',
+        phone: adminPhone,
         role: 'SUPER_ADMIN',
         isActive: true,
       },
@@ -43,12 +44,7 @@ export async function GET() {
         isActive: adminUser.isActive
       },
       passwordTest: {
-        testPassword: adminPassword,
         isValidPassword: isValidPassword
-      },
-      credentials: {
-        email: adminEmail,
-        password: adminPassword
       }
     });
 

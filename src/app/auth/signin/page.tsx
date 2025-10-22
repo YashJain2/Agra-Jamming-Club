@@ -21,7 +21,7 @@ export default function SignInPage() {
     setLoading(true);
     setError('');
 
-    console.log('Attempting sign in with:', { email: formData.email, password: formData.password });
+    console.log('Attempting sign in with email:', formData.email);
 
     try {
       const result = await signIn('credentials', {
@@ -131,7 +131,7 @@ export default function SignInPage() {
 
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                Demo credentials: admin@agrajammingclub.com / admin123
+                Contact administrator for access credentials
               </p>
             </div>
           </form>

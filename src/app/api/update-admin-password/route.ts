@@ -8,8 +8,9 @@ export async function GET() {
   try {
     console.log('Updating admin user password...');
     
-    const adminEmail = 'admin@agrajammingclub.com';
-    const adminPassword = 'admin123';
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@agrajammingclub.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminPhone = process.env.ADMIN_PHONE || '9876543210';
     
     // Update admin user password
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
@@ -18,7 +19,7 @@ export async function GET() {
       data: {
         password: hashedPassword,
         name: 'Admin User',
-        phone: '9876543210',
+        phone: adminPhone,
         role: 'SUPER_ADMIN',
         isActive: true,
       },
@@ -38,12 +39,7 @@ export async function GET() {
         isActive: adminUser.isActive
       },
       passwordTest: {
-        testPassword: adminPassword,
         isValidPassword: isValidPassword
-      },
-      credentials: {
-        email: adminEmail,
-        password: adminPassword
       }
     });
 
