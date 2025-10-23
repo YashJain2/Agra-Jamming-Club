@@ -143,7 +143,7 @@ export default function SubscriptionCheckoutPage() {
           prefill: {
             name: session?.user.name || '',
             email: session?.user.email || '',
-            contact: session?.user.phone || '',
+            contact: '',
           },
           theme: {
             color: '#ec4899',
