@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Ticket, Calendar, MapPin, Clock, User, Mail, Phone, Download } from 'lucide-react';
-import TicketDisplay from '@/components/ticket-display';
-import PDFDownload from '@/components/pdf-download';
+import { PdfDownload } from '@/components/pdf-download';
 
 interface TicketData {
   id: string;
@@ -61,7 +60,7 @@ export default function MyTicketsPage() {
       }
       
       const data = await response.json();
-      setTickets(data.tickets || []);
+      setTickets(data.data || []);
     } catch (error) {
       console.error('Error fetching tickets:', error);
       setError('Failed to load tickets. Please try again.');
@@ -164,7 +163,7 @@ export default function MyTicketsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <PDFDownload ticketId={ticket.id} />
+                  <PdfDownload ticketId={ticket.id} />
                 </div>
               </div>
             </div>
