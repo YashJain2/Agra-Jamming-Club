@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Ticket, Calendar, MapPin, Clock, User, Mail, Phone, Download } from 'lucide-react';
-import { PdfDownload } from '@/components/pdf-download';
+import PDFDownload from '@/components/pdf-download';
 
 interface TicketData {
   id: string;
@@ -163,7 +163,7 @@ export default function MyTicketsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <PdfDownload ticketId={ticket.id} />
+                  <PDFDownload ticketId={ticket.id} />
                 </div>
               </div>
             </div>

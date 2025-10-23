@@ -67,14 +67,13 @@ export default function SubscriptionCheckoutPage() {
 
     try {
       // Create subscription
-      const subscriptionResponse = await fetch('/api/subscriptions', {
+      const subscriptionResponse = await fetch('/api/subscriptions/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           planId: selectedPlan.id,
-          userId: session?.user.id,
         }),
       });
 
