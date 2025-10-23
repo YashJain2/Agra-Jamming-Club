@@ -3,8 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { checkUserSubscriptionStatus, hasUserUsedFreeAccessThisMonth } from '@/lib/subscription-utils';
 import QRCode from 'qrcode';
-import { checkUserSubscriptionStatus, canUserAccessEventsForFree, hasUserUsedFreeAccessThisMonth } from '@/lib/subscription-utils';
 
 // Validation schemas
 const createTicketSchema = z.object({
@@ -15,6 +15,8 @@ const createTicketSchema = z.object({
   guestName: z.string().optional(),
   guestEmail: z.string().email().optional(),
   guestPhone: z.string().optional(),
+  // Free booking flag
+  isFreeBooking: z.boolean().optional(),
 });
 
 // GET /api/tickets - Get user's tickets
@@ -102,14 +104,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/tickets - Create new ticket booking (supports guest checkout)
+// POST /api/tickets - Create new ticket booking (supports guest checkout and free subscription booking)
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const body = await request.json();
     const validatedData = createTicketSchema.parse(body);
 
-    const { eventId, quantity, specialRequests, guestName, guestEmail, guestPhone } = validatedData;
+    const { eventId, quantity, specialRequests, guestName, guestEmail, guestPhone, isFreeBooking } = validatedData;
 
     // Determine if this is a guest checkout or authenticated user
     const isGuestCheckout = !session && guestName && guestEmail && guestPhone;
@@ -119,6 +121,17 @@ export async function POST(request: NextRequest) {
         { error: 'Either sign in or provide guest details' },
         { status: 400 }
       );
+    }
+
+    // Check subscription status for free booking
+    if (isFreeBooking && session) {
+      const subscriptionStatus = await checkUserSubscriptionStatus(session.user.id);
+      if (!subscriptionStatus.canAccessForFree) {
+        return NextResponse.json(
+          { error: 'You do not have an active subscription for free booking' },
+          { status: 400 }
+        );
+      }
     }
 
     let userId: string | null = null;
@@ -195,7 +208,18 @@ export async function POST(request: NextRequest) {
     let isFreeAccess = false;
     let subscriptionInfo = null;
 
-    if (!isGuestCheckout && userId) {
+    if (isFreeBooking && !isGuestCheckout && userId) {
+      // This is a free booking request from a subscriber
+      totalPrice = 0;
+      isFreeAccess = true;
+      const subscriptionStatus = await checkUserSubscriptionStatus(userId);
+      subscriptionInfo = {
+        subscriptionId: subscriptionStatus.subscription!.id,
+        planName: subscriptionStatus.subscription!.plan.name,
+        daysRemaining: subscriptionStatus.daysRemaining,
+      };
+    } else if (!isGuestCheckout && userId) {
+      // Check if user has active subscription for automatic free access
       const subscriptionStatus = await checkUserSubscriptionStatus(userId);
       
       if (subscriptionStatus.hasActiveSubscription && !subscriptionStatus.isExpired) {

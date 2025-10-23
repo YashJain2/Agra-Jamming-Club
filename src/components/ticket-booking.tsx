@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { Calendar, MapPin, Clock, Users, Minus, Plus, CreditCard } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, MapPin, Clock, Users, Minus, Plus, CreditCard, Crown } from 'lucide-react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 
@@ -38,8 +38,33 @@ export function TicketBooking({ event }: TicketBookingProps) {
     phone: '',
   });
   const [isGuestCheckout, setIsGuestCheckout] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<{
+    hasActiveSubscription: boolean;
+    canAccessForFree: boolean;
+    subscription?: any;
+    daysRemaining?: number;
+  } | null>(null);
 
   const totalPrice = ticketQuantity * event.price;
+
+  // Check subscription status for signed-in users
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      if (session) {
+        try {
+          const response = await fetch('/api/subscription/status');
+          if (response.ok) {
+            const data = await response.json();
+            setSubscriptionStatus(data.data);
+          }
+        } catch (error) {
+          console.error('Error checking subscription status:', error);
+        }
+      }
+    };
+
+    checkSubscriptionStatus();
+  }, [session]);
 
   const handleQuantityChange = (change: number) => {
     const newQuantity = ticketQuantity + change;
@@ -64,6 +89,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
   };
 
   const handleBooking = async () => {
+    // Check if user has active subscription and can book for free
+    const canBookForFree = session && subscriptionStatus?.canAccessForFree;
+    
     // Determine if this should be guest checkout
     const shouldUseGuestCheckout = !session || isGuestCheckout;
     
@@ -92,7 +120,32 @@ export function TicketBooking({ event }: TicketBookingProps) {
     setIsProcessing(true);
     
     try {
-      // Load Razorpay script
+      // If user can book for free, create ticket directly without payment
+      if (canBookForFree) {
+        const response = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            eventId: event.id,
+            quantity: ticketQuantity,
+            isFreeBooking: true, // Flag to indicate this is a free booking
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          alert('Tickets booked successfully! Your subscription covers this event.');
+          window.location.reload();
+        } else {
+          const errorData = await response.json();
+          alert(errorData.error || 'Failed to book tickets');
+        }
+        return;
+      }
+
+      // Load Razorpay script for paid booking
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
         alert('Failed to load payment gateway');
@@ -340,11 +393,65 @@ export function TicketBooking({ event }: TicketBookingProps) {
               </p>
             </div>
 
+            {/* Subscription Status */}
+            {session && subscriptionStatus && (
+              <div className="mb-6">
+                {subscriptionStatus.canAccessForFree ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <Crown className="h-5 w-5 text-green-600 mr-2" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-green-800">Free with Subscription!</h3>
+                        <p className="text-green-700">
+                          Your {subscriptionStatus.subscription?.plan?.name} subscription covers this event.
+                          {subscriptionStatus.daysRemaining && subscriptionStatus.daysRemaining > 0 && (
+                            <span className="block text-sm">
+                              {subscriptionStatus.daysRemaining} days remaining in your subscription.
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : subscriptionStatus.hasActiveSubscription ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <Clock className="h-5 w-5 text-yellow-600 mr-2" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-yellow-800">Subscription Expired</h3>
+                        <p className="text-yellow-700">
+                          Your subscription has expired. Please renew to access free events.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <Crown className="h-5 w-5 text-blue-600 mr-2" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-blue-800">Get Free Access!</h3>
+                        <p className="text-blue-700">
+                          Subscribe to get free access to all events. <a href="/subscriptions" className="underline">View plans</a>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Price Summary */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Price per ticket:</span>
-                <span className="font-semibold">₹{event.price}</span>
+                <span className="font-semibold">
+                  {session && subscriptionStatus?.canAccessForFree ? (
+                    <span className="text-green-600">FREE</span>
+                  ) : (
+                    `₹${event.price}`
+                  )}
+                </span>
               </div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Quantity:</span>
@@ -353,7 +460,13 @@ export function TicketBooking({ event }: TicketBookingProps) {
               <div className="border-t pt-2">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total:</span>
-                  <span className="text-xl font-bold text-pink-600">₹{totalPrice}</span>
+                  <span className="text-xl font-bold">
+                    {session && subscriptionStatus?.canAccessForFree ? (
+                      <span className="text-green-600">FREE</span>
+                    ) : (
+                      `₹${totalPrice}`
+                    )}
+                  </span>
                 </div>
               </div>
             </div>
@@ -371,8 +484,17 @@ export function TicketBooking({ event }: TicketBookingProps) {
                 </>
               ) : (
                 <>
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  Book Now - ₹{totalPrice}
+                  {session && subscriptionStatus?.canAccessForFree ? (
+                    <>
+                      <Crown className="h-5 w-5 mr-2" />
+                      Book Free with Subscription
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Book Now - ₹{totalPrice}
+                    </>
+                  )}
                 </>
               )}
             </button>
