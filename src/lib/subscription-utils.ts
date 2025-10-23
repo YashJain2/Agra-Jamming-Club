@@ -2,6 +2,7 @@ import { prisma } from './prisma';
 
 export interface SubscriptionStatus {
   hasActiveSubscription: boolean;
+  canAccessForFree: boolean;
   subscription?: {
     id: string;
     planId: string;
@@ -44,15 +45,18 @@ export async function checkUserSubscriptionStatus(userId: string): Promise<Subsc
     if (!subscription) {
       return {
         hasActiveSubscription: false,
+        canAccessForFree: false,
         isExpired: true,
       };
     }
 
     const now = new Date();
     const daysRemaining = Math.ceil((subscription.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const isExpired = daysRemaining <= 0;
 
     return {
       hasActiveSubscription: true,
+      canAccessForFree: !isExpired && subscription.status === 'ACTIVE',
       subscription: {
         id: subscription.id,
         planId: subscription.planId,
@@ -68,12 +72,13 @@ export async function checkUserSubscriptionStatus(userId: string): Promise<Subsc
         },
       },
       daysRemaining: Math.max(0, daysRemaining),
-      isExpired: false,
+      isExpired,
     };
   } catch (error) {
     console.error('Error checking subscription status:', error);
     return {
       hasActiveSubscription: false,
+      canAccessForFree: false,
       isExpired: true,
     };
   }

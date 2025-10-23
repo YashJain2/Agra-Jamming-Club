@@ -146,7 +146,7 @@ export default function SubscriptionsPage() {
                     <p className="text-purple-100 mt-1">Get access to premium events and exclusive benefits</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-3xl font-bold">₹199</span>
+                    <span className="text-3xl font-bold">₹1</span>
                     <div className="text-purple-100 text-sm">per month</div>
                   </div>
                 </div>
@@ -180,7 +180,7 @@ export default function SubscriptionsPage() {
               </div>
               <h2 className="text-3xl font-bold mb-2">Monthly Membership</h2>
               <p className="text-purple-100 mb-6">Perfect for music lovers who want to be part of our community</p>
-              <div className="text-5xl font-bold mb-2">₹199</div>
+              <div className="text-5xl font-bold mb-2">₹1</div>
               <div className="text-purple-100">per month</div>
             </div>
 
