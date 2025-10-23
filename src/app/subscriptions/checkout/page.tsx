@@ -130,7 +130,28 @@ export default function SubscriptionCheckoutPage() {
               const verifyData = await verifyResponse.json();
 
               if (verifyData.success) {
-                router.push('/success/subscription');
+                // Redirect to success page with subscription data
+                const subscription = verifyData.data.subscription;
+                const params = new URLSearchParams({
+                  subscriptionId: subscription.id,
+                  planName: subscription.plan.name,
+                  planDuration: subscription.plan.duration.toString(),
+                  price: subscription.price.toString(),
+                  startDate: subscription.startDate,
+                  endDate: subscription.endDate,
+                });
+                
+                // Store data in localStorage as backup
+                localStorage.setItem('subscriptionSuccessData', JSON.stringify({
+                  subscriptionId: subscription.id,
+                  planName: subscription.plan.name,
+                  planDuration: subscription.plan.duration,
+                  price: subscription.price,
+                  startDate: subscription.startDate,
+                  endDate: subscription.endDate,
+                }));
+                
+                router.push(`/success/subscription?${params.toString()}`);
               } else {
                 throw new Error(verifyData.error || 'Payment verification failed');
               }

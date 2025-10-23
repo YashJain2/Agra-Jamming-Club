@@ -32,8 +32,19 @@ function SubscriptionSuccessContent() {
         guestName,
         guestEmail,
       });
+      setLoading(false);
+    } else {
+      // If no URL parameters, try to fetch from localStorage or show error
+      const storedData = localStorage.getItem('subscriptionSuccessData');
+      if (storedData) {
+        try {
+          setSubscriptionData(JSON.parse(storedData));
+        } catch (error) {
+          console.error('Error parsing stored subscription data:', error);
+        }
+      }
+      setLoading(false);
     }
-    setLoading(false);
   }, [searchParams]);
 
   if (loading) {
