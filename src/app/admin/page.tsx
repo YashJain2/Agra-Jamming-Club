@@ -429,7 +429,7 @@ export default function AdminDashboard() {
                 <div key={event.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                   <div className="relative h-48">
                     <Image
-                      src={event.imageUrl || '/raahein-event.jpg'}
+                      src={event.imageUrl || (event.title?.includes('Raahein') ? '/raahein-event.jpg' : 'https://via.placeholder.com/400x300/6366f1/ffffff?text=No+Image')}
                       alt={event.title}
                       fill
                       className="object-cover"
@@ -743,7 +743,7 @@ export default function AdminDashboard() {
                 {/* Event Image */}
                 <div className="relative h-64 rounded-lg overflow-hidden">
                   <Image
-                    src={selectedEvent.imageUrl || '/raahein-event.jpg'}
+                    src={selectedEvent.imageUrl || (selectedEvent.title?.includes('Raahein') ? '/raahein-event.jpg' : 'https://via.placeholder.com/400x300/6366f1/ffffff?text=No+Image')}
                     alt={selectedEvent.title}
                     fill
                     className="object-cover"
