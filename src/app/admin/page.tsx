@@ -111,9 +111,17 @@ export default function AdminDashboard() {
     return null
   }
 
+  // Calculate stats - ensure we only count ACTIVE and non-expired subscriptions
+  const activeSubscriptions = subscriptions.filter(s => {
+    if (s.status !== 'ACTIVE') return false;
+    const endDate = new Date(s.endDate);
+    const now = new Date();
+    return endDate > now; // Only count if not expired
+  });
+
   const stats = {
     totalEvents: events.length,
-    activeSubscriptions: subscriptions.filter(s => s.status === 'ACTIVE').length,
+    activeSubscriptions: activeSubscriptions.length,
     totalRevenue: subscriptions.reduce((sum, s) => sum + s.price, 0) + tickets.reduce((sum, t) => sum + t.totalPrice, 0),
     ticketsSold: tickets.reduce((sum, t) => sum + t.quantity, 0)
   }
@@ -555,7 +563,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">
-                    {subscriptions.filter(s => s.status === 'ACTIVE').length}
+                    {activeSubscriptions.length}
                   </div>
                   <div className="text-sm text-gray-500">Active</div>
                 </div>
