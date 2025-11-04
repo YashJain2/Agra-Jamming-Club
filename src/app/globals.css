@@ -139,3 +139,25 @@ body {
   transform: scale(1.05);
   filter: contrast(1.2) brightness(1) saturate(1.15);
 }
+
+/* Banner title animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.banner-title {
+  animation: fadeInUp 1s ease-out;
+}
+
+.banner-title span {
+  display: block;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  letter-spacing: -0.02em;
+}

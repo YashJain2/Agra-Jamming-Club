@@ -19,9 +19,14 @@ export default function Home() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-12 sm:py-16">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight drop-shadow-2xl">
-            What is Agra Jamming Club
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-16 sm:py-20 md:py-24">
+          <h1 className="banner-title text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold leading-tight mb-4 tracking-tight">
+            <span className="block text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+              What is
+            </span>
+            <span className="block text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+              Agra Jamming Club
+            </span>
           </h1>
         </div>
       </section>
