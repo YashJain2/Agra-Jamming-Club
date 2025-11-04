@@ -228,6 +228,38 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleResetAndCreateEvent = async () => {
+    if (!confirm('⚠️ WARNING: This will delete ALL events, tickets, subscriptions, and guest data. Are you sure you want to proceed?')) {
+      return
+    }
+
+    if (!confirm('⚠️ This action cannot be undone. Are you absolutely sure?')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await fetch('/api/events/reset-and-create', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        alert(`✅ Success! ${data.data.deleted.events} events, ${data.data.deleted.tickets} tickets, and ${data.data.deleted.subscriptions} subscriptions deleted. New Raahein event created!`)
+        await fetchData() // Refresh the page data
+      } else {
+        const error = await response.json()
+        alert(`❌ Failed: ${error.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Error resetting and creating event:', error)
+      alert('❌ An error occurred while resetting data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -265,6 +297,13 @@ export default function AdminDashboard() {
               >
                 <QrCode className="h-5 w-5 mr-2" />
                 Guest Verification
+              </button>
+              <button 
+                onClick={handleResetAndCreateEvent}
+                className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                <Calendar className="h-5 w-5 mr-2" />
+                Reset & Create Raahein Event
               </button>
             </div>
           </div>
