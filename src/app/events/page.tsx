@@ -83,7 +83,7 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-6 sm:py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -86,7 +86,7 @@ export default function SubscriptionsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       {/* Subscription Status for Signed-in Users (Non-Admin) */}
       {session && !isAdmin && (
         <section className="bg-white py-8 border-b">
