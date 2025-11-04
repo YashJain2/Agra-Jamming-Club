@@ -4,8 +4,8 @@ import { Calendar, Users, Music, Heart, Sparkles, ArrowRight } from 'lucide-reac
 export default function Home() {
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Hero Banner Section */}
+      <section className="relative min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center justify-center overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
@@ -19,31 +19,40 @@ export default function Home() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-6 sm:py-8">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight drop-shadow-2xl">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-12 sm:py-16">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight drop-shadow-2xl">
             What is Agra Jamming Club
           </h1>
-          <div className="space-y-3 sm:space-y-4 text-base sm:text-lg md:text-xl text-white leading-normal drop-shadow-lg">
-            <p className="font-medium text-white drop-shadow-md leading-normal">
-              In a city of monuments, we&apos;re building a new heritage — of music, connection, and community.
+        </div>
+      </section>
+
+      {/* Introduction Section */}
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-white to-pink-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="space-y-5 sm:space-y-6 text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed">
+            <p className="font-medium">
+              In a city known for its monuments, a new kind of heritage is being built — one of music, connection, and community.
             </p>
-            <p className="text-white drop-shadow-md leading-normal">
-              A space where music lovers come together to sing, unwind, and simply be.
+            <p>
+              Agra Jamming Club is a space where music lovers, dreamers, and everyday people come together to sing, unwind, and simply be.
             </p>
-            <p className="italic text-white/95 drop-shadow-md leading-normal">
-              No stage. No competition. Just a shared heartbeat.
+            <p className="italic text-gray-600">
+              It&apos;s not a stage or a competition — it&apos;s a shared heartbeat.
             </p>
-            <p className="text-white drop-shadow-md leading-normal">
-              Strangers become friends. Voices blend into something bigger. No spotlight. No judgment. Just pure music — and belonging.
+            <p>
+              Here, strangers turn into friends, and voices blend into something far bigger than any one song.
             </p>
-            <div className="pt-4 sm:pt-6 flex items-center justify-center">
+            <p>
+              No spotlight. No judgment. Just pure, honest music — and the joy of belonging.
+            </p>
+            <div className="pt-6 sm:pt-8 flex items-center justify-center">
               <span className="text-2xl sm:text-3xl mr-2">✨</span>
-              <p className="text-xl sm:text-2xl font-semibold text-pink-200 drop-shadow-lg">
+              <p className="text-xl sm:text-2xl font-semibold text-pink-600">
                 Where music finds its people.
               </p>
             </div>
           </div>
-          <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               href="/events" 
               className="bg-pink-500 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-pink-600 transition-colors shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
@@ -52,7 +61,7 @@ export default function Home() {
             </Link>
             <Link 
               href="/subscriptions" 
-              className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-pink-600 transition-colors shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
+              className="border-2 border-pink-500 text-pink-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-pink-500 hover:text-white transition-colors shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
             >
               Join the Tribe
             </Link>
