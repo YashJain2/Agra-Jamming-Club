@@ -99,6 +99,7 @@ Every individual who will attend the event should fill the form separately for v
         price: 199,
         maxTickets: 250,
         soldTickets: 0,
+        imageUrl: '/raahein-event.jpg',
         category: 'MUSIC',
         status: 'PUBLISHED',
         isActive: true,
