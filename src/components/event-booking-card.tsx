@@ -41,6 +41,8 @@ interface EventPricing {
   subscriptionValid: boolean;
   subscriptionEndDate?: Date;
   reason: string;
+  hasUsedFreeTicket?: boolean;
+  canGetFreeTicket?: boolean;
 }
 
 interface EventBookingCardProps {
