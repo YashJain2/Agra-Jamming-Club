@@ -13,7 +13,7 @@ export function Footer() {
             </p>
             <div className="text-gray-300">
               <p>📧 info@agrajammingclub.com</p>
-              <p>📞 +91-9876543210</p>
+              <p>📞 7983301442 - whatsapp only</p>
               <p>📍 Agra, Uttar Pradesh, India</p>
             </div>
           </div>

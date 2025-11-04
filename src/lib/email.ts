@@ -108,7 +108,7 @@ export const emailTemplates = {
         
         <div style="background: #f3f4f6; padding: 20px; text-align: center; color: #6b7280; font-size: 12px;">
           <p>© 2024 Agra Jamming Club. All rights reserved.</p>
-          <p>Contact: info@agrajammingclub.com | Phone: +91-9876543210</p>
+          <p>Contact: info@agrajammingclub.com | Phone: 7983301442 - whatsapp only</p>
         </div>
       </div>
     `,
@@ -203,7 +203,7 @@ export const emailTemplates = {
         
         <div style="background: #f3f4f6; padding: 20px; text-align: center; color: #6b7280; font-size: 12px;">
           <p>© 2024 Agra Jamming Club. All rights reserved.</p>
-          <p>Contact: info@agrajammingclub.com | Phone: +91-9876543210</p>
+          <p>Contact: info@agrajammingclub.com | Phone: 7983301442 - whatsapp only</p>
         </div>
       </div>
     `,

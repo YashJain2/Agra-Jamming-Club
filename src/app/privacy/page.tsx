@@ -84,7 +84,7 @@ export default function PrivacyPolicyPage() {
                 <p>If you have any questions about this Privacy Policy, please contact us:</p>
                 <div className="bg-gray-100 p-4 rounded-lg">
                   <p><strong>Email:</strong> privacy@agrajammingclub.com</p>
-                  <p><strong>Phone:</strong> +91-9876543210</p>
+                  <p><strong>Phone:</strong> 7983301442 - whatsapp only</p>
                   <p><strong>Address:</strong> Agra Jamming Club, Agra, Uttar Pradesh, India</p>
                 </div>
               </div>

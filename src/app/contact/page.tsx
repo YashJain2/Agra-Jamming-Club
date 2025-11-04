@@ -25,8 +25,7 @@ export default function ContactUsPage() {
 
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">Phone</h3>
-                  <p className="text-gray-600">+91-9876543210</p>
-                  <p className="text-gray-600">+91-8077037849</p>
+                  <p className="text-gray-600">7983301442 - whatsapp only</p>
                 </div>
 
                 <div>
