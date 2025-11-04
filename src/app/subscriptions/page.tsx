@@ -59,7 +59,6 @@ export default function SubscriptionsPage() {
     "Priority booking for tickets",
     "Member-only discounts",
     "Exclusive member events",
-    "Free guest passes (2 per month)",
     "Early access to event announcements"
   ]
 
@@ -462,11 +461,6 @@ export default function SubscriptionsPage() {
             <div className="border-b pb-6">
               <h3 className="text-lg font-semibold mb-2">What if I miss an event?</h3>
               <p className="text-gray-600">While we can&apos;t refund for missed events, subscribers get priority booking for future events and exclusive member-only sessions.</p>
-            </div>
-
-            <div className="border-b pb-6">
-              <h3 className="text-lg font-semibold mb-2">Are guest passes included?</h3>
-              <p className="text-gray-600">Yes! Each monthly subscription includes 2 free guest passes that you can use to bring friends to events.</p>
             </div>
 
             <div className="border-b pb-6">
