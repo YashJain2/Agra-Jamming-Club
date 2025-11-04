@@ -5,15 +5,15 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 text-gray-800 py-24 overflow-hidden">
+      <section className="relative bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 text-gray-800 py-12 sm:py-16 md:py-24 overflow-hidden">
         {/* Background Image */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 banner-container">
           <img
             src="/home-banner.jpg"
             alt="Agra Jamming Club"
-            className="w-full h-full object-cover opacity-20"
+            className="textured-banner w-full h-full object-cover opacity-30 sm:opacity-25 md:opacity-20"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-100/90 via-purple-100/90 to-indigo-100/90"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-100/90 via-purple-100/90 to-indigo-100/90 z-3"></div>
         </div>
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
@@ -123,12 +123,12 @@ export default function Home() {
             </div>
             
             {/* Founder Photo */}
-            <div className="mb-8 flex justify-center">
-              <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-pink-200 shadow-lg">
+            <div className="mb-6 sm:mb-8 flex justify-center">
+              <div className="founder-image-wrapper relative founder-image-container rounded-full overflow-hidden border-4 border-pink-200 shadow-xl hover:shadow-2xl transition-shadow duration-300">
                 <img
                   src="/founder-riya.jpg"
                   alt="Riya Agarwal - Founder, Agra Jamming Club"
-                  className="w-full h-full object-cover"
+                  className="textured-founder w-full h-full object-cover"
                 />
               </div>
             </div>
