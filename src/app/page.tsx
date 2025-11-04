@@ -20,7 +20,7 @@ export default function Home() {
         
         {/* Content Overlay */}
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-16 sm:py-20 md:py-24">
-          <h1 className="banner-title text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold leading-tight mb-4 tracking-tight">
+          <h1 className="banner-title text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 tracking-normal" style={{ fontFamily: 'Georgia, serif' }}>
             <span className="block text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
               What is
             </span>

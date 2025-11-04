@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Clock, Users, Ticket, ArrowRight, AlertCircle } from 'lucide-react';
 import { EventBookingCard } from '@/components/event-booking-card';
+import { SubscriptionStatusCard } from '@/components/subscription-status-card';
 
 interface Event {
   id: string;
@@ -95,6 +96,13 @@ export default function EventsPage() {
               Join us for amazing musical experiences. Book your tickets now and be part of our vibrant community.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Subscription Status */}
+      <section className="py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SubscriptionStatusCard />
         </div>
       </section>
 
