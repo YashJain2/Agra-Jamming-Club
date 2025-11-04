@@ -86,10 +86,10 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-8 sm:py-10">
+      <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-6 sm:py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-3">
               Upcoming Events
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-purple-100 max-w-2xl mx-auto">
