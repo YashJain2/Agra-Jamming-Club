@@ -27,7 +27,7 @@ export default function Home() {
               No spotlight. No judgment. Just pure, honest music — and the joy of belonging.
             </p>
             <div className="pt-4 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-pink-500 mr-2" />
+              <span className="text-2xl mr-2">✨</span>
               <p className="text-2xl font-semibold text-pink-600">
                 Where music finds its people.
               </p>
@@ -107,7 +107,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
             <div className="flex items-center mb-6">
-              <Heart className="h-8 w-8 text-pink-500 mr-3" />
+              <span className="text-3xl mr-3">💛</span>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 Founder&apos;s Note — by Riya Agarwal
               </h2>
