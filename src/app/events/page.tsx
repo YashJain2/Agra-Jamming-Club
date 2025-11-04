@@ -87,7 +87,7 @@ export default function EventsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-8 sm:py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
               Upcoming Events
@@ -99,37 +99,9 @@ export default function EventsPage() {
         </div>
       </section>
 
-      {/* Terms & Conditions Section */}
-      <section className="py-8 bg-gray-50 border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-              <AlertCircle className="h-6 w-6 text-purple-600 mr-2" />
-              Terms & Conditions
-            </h2>
-            <div className="space-y-3 text-sm text-gray-700">
-              <p>• No refunds or adjustments once tickets are booked.</p>
-              <p>• No alcohol, smoking, or substances allowed.</p>
-              <p>• Kids are welcome, but parents must ensure they don&apos;t cause disturbance.</p>
-              <p>• This is a No Judgement Zone — sing freely; perfection isn&apos;t the goal.</p>
-              <p>• No Vulgar Songs or Language — keep lyrics and behavior respectful.</p>
-              <p>• No Food Allowed during the session.</p>
-              <p>• Pre-Approval Required for original compositions — all content must align with AJC&apos;s values.</p>
-              <p>• Inclusive Vibes Only — everyone deserves to feel safe and accepted.</p>
-              <p>• Cheer & Encourage — we rise together.</p>
-              <p>• Be On Time and respect the schedule.</p>
-              <p>• Seating will be on first come first serve basis.</p>
-              <p className="font-semibold text-gray-900 mt-2">
-                • Every individual who will attend the event should fill the form separately for verification. Anyone who fails to do so will be denied entry in the session.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Subscription Status */}
       <section className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <SubscriptionStatusCard />
         </div>
       </section>
@@ -175,9 +147,37 @@ export default function EventsPage() {
         </div>
       </section>
 
+      {/* Terms & Conditions Section */}
+      <section className="py-8 bg-gray-50 border-b">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+              <AlertCircle className="h-6 w-6 text-purple-600 mr-2" />
+              Terms & Conditions
+            </h2>
+            <div className="space-y-3 text-sm text-gray-700">
+              <p>• No refunds or adjustments once tickets are booked.</p>
+              <p>• No alcohol, smoking, or substances allowed.</p>
+              <p>• Kids are welcome, but parents must ensure they don&apos;t cause disturbance.</p>
+              <p>• This is a No Judgement Zone — sing freely; perfection isn&apos;t the goal.</p>
+              <p>• No Vulgar Songs or Language — keep lyrics and behavior respectful.</p>
+              <p>• No Food Allowed during the session.</p>
+              <p>• Pre-Approval Required for original compositions — all content must align with AJC&apos;s values.</p>
+              <p>• Inclusive Vibes Only — everyone deserves to feel safe and accepted.</p>
+              <p>• Cheer & Encourage — we rise together.</p>
+              <p>• Be On Time and respect the schedule.</p>
+              <p>• Seating will be on first come first serve basis.</p>
+              <p className="font-semibold text-gray-900 mt-2">
+                • Every individual who will attend the event should fill the form separately for verification. Anyone who fails to do so will be denied entry in the session.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Subscription CTA */}
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-8 text-white text-center">
             <div className="flex items-center justify-center mb-4">
               <Crown className="h-8 w-8 mr-2" />

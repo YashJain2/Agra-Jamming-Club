@@ -90,7 +90,7 @@ export default function SubscriptionsPage() {
       {/* Subscription Status for Signed-in Users (Non-Admin) */}
       {session && !isAdmin && (
         <section className="bg-white py-8 border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
@@ -156,17 +156,17 @@ export default function SubscriptionsPage() {
       )}
 
       {/* Header */}
-      <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-8 sm:py-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
               Join the Tribe — Become a Member
             </h1>
-            <p className="text-xl text-purple-100 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-purple-100 max-w-3xl mx-auto">
               The Agra Jamming Club isn&apos;t an event — it&apos;s a growing family of voices, instruments, and emotions.
               By becoming a member, you don&apos;t just attend the jams — you build them.
             </p>
-            <p className="text-lg text-purple-200 max-w-2xl mx-auto mt-4">
+            <p className="text-sm sm:text-base md:text-lg text-purple-200 max-w-2xl mx-auto mt-3 sm:mt-4">
               Your small contribution helps us create intimate, safe, and beautifully managed gatherings twice every month — spaces that stay authentic, inclusive, and alive.
             </p>
           </div>
@@ -175,14 +175,14 @@ export default function SubscriptionsPage() {
 
       {/* Pricing Cards */}
       <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               🎟️ Membership Plans
             </h2>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8">
             {/* Plan 1: One Meetup */}
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-purple-200">
               <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-8 text-white text-center">
@@ -364,17 +364,17 @@ export default function SubscriptionsPage() {
 
       {/* Benefits Section */}
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               Why Subscribe?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
               Join our community and enjoy exclusive benefits designed for music lovers
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {benefits.map((benefit, index) => (
               <div key={index} className="text-center p-6 rounded-lg hover:shadow-lg transition-shadow">
                 <div className="flex justify-center mb-4">
@@ -390,14 +390,14 @@ export default function SubscriptionsPage() {
 
       {/* Testimonials */}
       <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               What Our Members Say
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
             <div className="bg-white p-6 rounded-lg shadow-lg">
               <div className="flex items-center mb-4">
                 <div className="flex text-yellow-400">
@@ -474,10 +474,10 @@ export default function SubscriptionsPage() {
       {/* Final CTA */}
       <section className="py-16 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             Ready to Join Our Musical Community?
           </h2>
-          <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-purple-100 mb-6 sm:mb-8 max-w-2xl mx-auto">
             Start your subscription today and become part of Agra&apos;s most vibrant musical community.
           </p>
           {session ? (
