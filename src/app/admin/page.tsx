@@ -138,7 +138,11 @@ export default function AdminDashboard() {
 
       if (subscriptionsRes.ok) {
         const subscriptionsData = await subscriptionsRes.json()
-        setSubscriptions(subscriptionsData.data || [])
+        // Filter out PENDING subscriptions - only show ACTIVE, EXPIRED, CANCELLED
+        const filteredSubscriptions = (subscriptionsData.data || []).filter(
+          (sub: Subscription) => sub.status !== 'PENDING'
+        )
+        setSubscriptions(filteredSubscriptions)
       }
 
       if (ticketsRes.ok) {
@@ -548,7 +552,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Subscription Summary</h3>
-                  <p className="text-sm text-gray-500">Total subscriptions: {subscriptions.length}</p>
+                  <p className="text-sm text-gray-500">Total subscriptions: {subscriptions.length} (excluding pending)</p>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">
