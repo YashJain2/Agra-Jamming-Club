@@ -13,32 +13,33 @@ export default function Home() {
             alt="Agra Jamming Club"
             className="textured-banner w-full h-full object-cover"
           />
-          {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 z-1"></div>
+          {/* Dark overlay mixed with image for text readability */}
+          <div className="absolute inset-0 bg-black/60 z-1"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/60 z-2"></div>
         </div>
         
         {/* Content Overlay */}
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight drop-shadow-2xl">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-8">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-8 sm:mb-10 leading-tight drop-shadow-2xl">
             What is Agra Jamming Club
           </h1>
-          <div className="space-y-4 sm:space-y-6 text-base sm:text-lg md:text-xl text-white/95 leading-relaxed drop-shadow-lg">
-            <p className="font-medium text-white drop-shadow-md">
+          <div className="space-y-5 sm:space-y-6 text-base sm:text-lg md:text-xl text-white leading-relaxed drop-shadow-lg">
+            <p className="font-medium text-white drop-shadow-md leading-relaxed">
               In a city known for its monuments, a new kind of heritage is being built — one of music, connection, and community.
             </p>
-            <p className="text-white/95 drop-shadow-md">
+            <p className="text-white drop-shadow-md leading-relaxed">
               Agra Jamming Club is a space where music lovers, dreamers, and everyday people come together to sing, unwind, and simply be.
             </p>
-            <p className="italic text-white/90 drop-shadow-md">
+            <p className="italic text-white/95 drop-shadow-md leading-relaxed">
               It&apos;s not a stage or a competition — it&apos;s a shared heartbeat.
             </p>
-            <p className="text-white/95 drop-shadow-md">
+            <p className="text-white drop-shadow-md leading-relaxed">
               Here, strangers turn into friends, and voices blend into something far bigger than any one song.
             </p>
-            <p className="text-white/95 drop-shadow-md">
+            <p className="text-white drop-shadow-md leading-relaxed">
               No spotlight. No judgment. Just pure, honest music — and the joy of belonging.
             </p>
-            <div className="pt-4 sm:pt-6 flex items-center justify-center">
+            <div className="pt-6 sm:pt-8 flex items-center justify-center">
               <span className="text-2xl sm:text-3xl mr-2">✨</span>
               <p className="text-xl sm:text-2xl font-semibold text-pink-200 drop-shadow-lg">
                 Where music finds its people.
@@ -63,7 +64,7 @@ export default function Home() {
       </section>
 
       {/* What Happens in Every Meet Section */}
-      <section className="py-20 bg-white">
+      <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -115,7 +116,7 @@ export default function Home() {
       </section>
 
       {/* Founder's Note Section */}
-      <section className="py-20 bg-gradient-to-b from-pink-50 to-purple-50">
+      <section className="py-16 sm:py-20 bg-gradient-to-b from-pink-50 to-purple-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
             <div className="flex items-center mb-6">
@@ -183,7 +184,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-pink-400 to-purple-500 text-white">
+      <section className="py-16 sm:py-20 bg-gradient-to-r from-pink-400 to-purple-500 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Music className="h-16 w-16 mx-auto mb-6 text-white/80" />
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
