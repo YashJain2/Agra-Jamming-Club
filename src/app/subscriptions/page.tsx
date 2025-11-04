@@ -96,20 +96,20 @@ export default function SubscriptionsPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
               </div>
             ) : activeSubscription ? (
-              <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">Active Subscription</h2>
-                    <p className="text-green-100 mt-1">{activeSubscription.plan.name}</p>
+              <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 sm:p-5 text-white">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h2 className="text-xl sm:text-2xl font-bold">Active Subscription</h2>
+                    <p className="text-green-100 mt-1 text-sm sm:text-base">{activeSubscription.plan.name}</p>
                     <div className="mt-2">
-                      <span className="text-lg font-medium">
+                      <span className="text-base sm:text-lg font-medium">
                         {daysLeft <= 0 ? 'Expired' : `${daysLeft} days remaining`}
                       </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold">₹{activeSubscription.price}</div>
-                    <div className="text-green-100 text-sm">
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-2xl sm:text-3xl font-bold">₹{activeSubscription.price}</div>
+                    <div className="text-green-100 text-xs sm:text-sm">
                       Expires: {new Date(activeSubscription.endDate).toLocaleDateString()}
                     </div>
                   </div>
@@ -138,15 +138,15 @@ export default function SubscriptionsPage() {
                 )}
               </div>
             ) : (
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">No Active Subscription</h2>
-                    <p className="text-purple-100 mt-1">Get access to premium events and exclusive benefits</p>
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-4 sm:p-5 text-white">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h2 className="text-xl sm:text-2xl font-bold">No Active Subscription</h2>
+                    <p className="text-purple-100 mt-1 text-sm sm:text-base">Get access to premium events and exclusive benefits</p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-3xl font-bold">₹299</span>
-                    <div className="text-purple-100 text-sm">per month</div>
+                  <div className="text-right flex-shrink-0">
+                    <span className="text-2xl sm:text-3xl font-bold">₹299</span>
+                    <div className="text-purple-100 text-xs sm:text-sm">per month</div>
                   </div>
                 </div>
               </div>

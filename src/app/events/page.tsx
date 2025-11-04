@@ -86,13 +86,13 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12 sm:py-16">
+      <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-8 sm:py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
               Upcoming Events
             </h1>
-            <p className="text-xl text-purple-100 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-purple-100 max-w-2xl mx-auto">
               Join us for amazing musical experiences. Book your tickets now and be part of our vibrant community.
             </p>
           </div>
@@ -181,11 +181,11 @@ export default function EventsPage() {
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-8 text-white text-center">
             <div className="flex items-center justify-center mb-4">
               <Crown className="h-8 w-8 mr-2" />
-              <h2 className="text-3xl font-bold">
+              <h2 className="text-2xl sm:text-3xl font-bold">
                 Get FREE Access to All Events!
               </h2>
             </div>
-            <p className="text-xl text-purple-100 mb-6 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-purple-100 mb-6 max-w-2xl mx-auto">
               Subscribe to our monthly membership and enjoy unlimited free access to all events, 
               priority booking, member discounts, and exclusive benefits.
             </p>
@@ -194,7 +194,7 @@ export default function EventsPage() {
                 href="/subscriptions"
                 className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
               >
-                Subscribe Now - ₹1/month
+                Subscribe Now - ₹299/month
               </Link>
               <Link 
                 href="/dashboard"
