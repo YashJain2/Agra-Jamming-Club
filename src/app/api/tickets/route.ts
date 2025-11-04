@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
         const hasUsedFreeAccess = await hasUserUsedFreeAccessThisMonth(userId, eventId);
         
         if (!hasUsedFreeAccess) {
-          // For subscribers: 1 ticket is free, rest are paid
+          // For subscribers: 1 ticket is free, rest are paid (only if free ticket is available)
           if (quantity === 1) {
             totalPrice = 0; // Completely free
             isFreeAccess = true;
@@ -242,6 +242,10 @@ export async function POST(request: NextRequest) {
             planName: subscriptionStatus.subscription!.plan.name,
             daysRemaining: subscriptionStatus.daysRemaining,
           };
+        } else {
+          // User has already used free ticket for this event, charge full price
+          totalPrice = event.price * quantity;
+          isFreeAccess = false;
         }
       }
     }

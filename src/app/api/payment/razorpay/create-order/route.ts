@@ -145,9 +145,12 @@ export async function POST(request: NextRequest) {
               { status: 400 }
             );
           } else {
-            // Partial free: charge only for additional tickets
+            // Partial free: charge only for additional tickets (1 free + rest paid)
             totalAmount = (quantity - 1) * event.price;
           }
+        } else {
+          // User has already used free ticket for this event, charge full price
+          totalAmount = event.price * quantity;
         }
       }
     }

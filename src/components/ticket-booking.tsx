@@ -44,31 +44,14 @@ export function TicketBooking({ event }: TicketBookingProps) {
     subscription?: any;
     daysRemaining?: number;
   } | null>(null);
+  const [eventPricing, setEventPricing] = useState<{
+    canGetFreeTicket: boolean;
+    hasUsedFreeTicket: boolean;
+  } | null>(null);
 
-  // Calculate pricing based on subscription status
-  const calculateTotalPrice = () => {
-    if (isPastEvent) return 0;
-    
-    // If user has active subscription, 1 ticket is free, rest are paid
-    if (session && subscriptionStatus?.canAccessEventsForFree) {
-      if (ticketQuantity === 1) {
-        return 0; // Free
-      } else {
-        return (ticketQuantity - 1) * event.price; // 1 free + rest paid
-      }
-    }
-    
-    // Regular pricing for non-subscribers
-    return ticketQuantity * event.price;
-  };
-
-  const totalPrice = calculateTotalPrice();
   const isPastEvent = new Date(event.date) < new Date();
-  const hasActiveSubscription = session && subscriptionStatus?.canAccessEventsForFree;
-  const freeTicketsCount = hasActiveSubscription ? Math.min(1, ticketQuantity) : 0;
-  const paidTicketsCount = hasActiveSubscription ? Math.max(0, ticketQuantity - 1) : ticketQuantity;
 
-  // Check subscription status for signed-in users
+  // Check subscription status and event pricing for signed-in users
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       if (session) {
@@ -78,6 +61,25 @@ export function TicketBooking({ event }: TicketBookingProps) {
             const data = await response.json();
             setSubscriptionStatus(data.data);
           }
+
+          // Check event-specific pricing including free ticket availability
+          const pricingResponse = await fetch('/api/events/pricing', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              eventDate: event.date,
+              eventPrice: event.price,
+              eventId: event.id,
+            }),
+          });
+
+          if (pricingResponse.ok) {
+            const pricingData = await pricingResponse.json();
+            setEventPricing(pricingData.data);
+          }
         } catch (error) {
           console.error('Error checking subscription status:', error);
         }
@@ -85,7 +87,32 @@ export function TicketBooking({ event }: TicketBookingProps) {
     };
 
     checkSubscriptionStatus();
-  }, [session]);
+  }, [session, event.id, event.date, event.price]);
+
+  // Calculate pricing based on subscription status and free ticket availability
+  const calculateTotalPrice = () => {
+    if (isPastEvent) return 0;
+    
+    // If user can get free ticket (has subscription AND hasn't used it for this event)
+    const canGetFreeTicket = session && subscriptionStatus?.canAccessEventsForFree && eventPricing?.canGetFreeTicket;
+    
+    if (canGetFreeTicket) {
+      if (ticketQuantity === 1) {
+        return 0; // Free
+      } else {
+        return (ticketQuantity - 1) * event.price; // 1 free + rest paid
+      }
+    }
+    
+    // Regular pricing (no subscription OR already used free ticket)
+    return ticketQuantity * event.price;
+  };
+
+  const totalPrice = calculateTotalPrice();
+  const hasActiveSubscription = session && subscriptionStatus?.canAccessEventsForFree;
+  const canGetFreeTicket = hasActiveSubscription && eventPricing?.canGetFreeTicket;
+  const freeTicketsCount = canGetFreeTicket ? Math.min(1, ticketQuantity) : 0;
+  const paidTicketsCount = canGetFreeTicket ? Math.max(0, ticketQuantity - 1) : ticketQuantity;
 
   const handleQuantityChange = (change: number) => {
     const newQuantity = ticketQuantity + change;
@@ -116,8 +143,8 @@ export function TicketBooking({ event }: TicketBookingProps) {
       return;
     }
 
-    // Check if user has active subscription and can book for free
-    const canBookForFree = session && subscriptionStatus?.canAccessEventsForFree;
+    // Check if user can book for free (has subscription AND hasn't used free ticket for this event)
+    const canBookForFree = session && subscriptionStatus?.canAccessEventsForFree && eventPricing?.canGetFreeTicket;
     
     // Determine if this should be guest checkout
     const shouldUseGuestCheckout = !session || isGuestCheckout;
@@ -442,19 +469,31 @@ export function TicketBooking({ event }: TicketBookingProps) {
             {/* Subscription Status */}
             {session && subscriptionStatus && !isPastEvent && (
               <div className="mb-6">
-                {subscriptionStatus.canAccessEventsForFree ? (
+                {canGetFreeTicket ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center">
                       <Crown className="h-5 w-5 text-green-600 mr-2" />
                       <div>
-                        <h3 className="text-lg font-semibold text-green-800">Free with Subscription!</h3>
+                        <h3 className="text-lg font-semibold text-green-800">1 Free Ticket Available!</h3>
                         <p className="text-green-700">
-                          Your {subscriptionStatus.subscription?.plan?.name} subscription covers this event.
+                          Your {subscriptionStatus.subscription?.plan?.name} subscription includes 1 free ticket for this event.
                           {subscriptionStatus.daysRemaining && subscriptionStatus.daysRemaining > 0 && (
                             <span className="block text-sm">
                               {subscriptionStatus.daysRemaining} days remaining in your subscription.
                             </span>
                           )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : eventPricing?.hasUsedFreeTicket ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <Crown className="h-5 w-5 text-yellow-600 mr-2" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-yellow-800">Free Ticket Already Used</h3>
+                        <p className="text-yellow-700">
+                          You&apos;ve already used your free ticket for this event. All tickets will be charged at regular price.
                         </p>
                       </div>
                     </div>
@@ -489,7 +528,7 @@ export function TicketBooking({ event }: TicketBookingProps) {
 
             {/* Price Summary */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
-              {hasActiveSubscription && ticketQuantity > 1 && (
+              {canGetFreeTicket && ticketQuantity > 1 && (
                 <div className="mb-3 pb-3 border-b">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm text-gray-600">Free ticket (subscription):</span>
@@ -506,9 +545,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
                 <span className="font-semibold">
                   {isPastEvent ? (
                     <span className="text-gray-400">N/A</span>
-                  ) : hasActiveSubscription && ticketQuantity === 1 ? (
+                  ) : canGetFreeTicket && ticketQuantity === 1 ? (
                     <span className="text-green-600">FREE</span>
-                  ) : hasActiveSubscription && ticketQuantity > 1 ? (
+                  ) : canGetFreeTicket && ticketQuantity > 1 ? (
                     <span className="text-gray-500">
                       1 × <span className="text-green-600">FREE</span> + {paidTicketsCount} × ₹{event.price}
                     </span>
@@ -527,9 +566,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
                   <span className="text-xl font-bold">
                     {isPastEvent ? (
                       <span className="text-gray-400">N/A</span>
-                    ) : hasActiveSubscription && totalPrice === 0 ? (
-                      <span className="text-green-600">FREE</span>
-                    ) : hasActiveSubscription && totalPrice > 0 ? (
+                  ) : canGetFreeTicket && totalPrice === 0 ? (
+                    <span className="text-green-600">FREE</span>
+                  ) : canGetFreeTicket && totalPrice > 0 ? (
                       <span>
                         <span className="text-green-600 line-through text-sm mr-2">₹{ticketQuantity * event.price}</span>
                         <span>₹{totalPrice}</span>
@@ -560,12 +599,12 @@ export function TicketBooking({ event }: TicketBookingProps) {
                 </>
               ) : (
                 <>
-                  {hasActiveSubscription && totalPrice === 0 ? (
+                  {canGetFreeTicket && totalPrice === 0 ? (
                     <>
                       <Crown className="h-5 w-5 mr-2" />
                       Book Free with Subscription
                     </>
-                  ) : hasActiveSubscription && totalPrice > 0 ? (
+                  ) : canGetFreeTicket && totalPrice > 0 ? (
                     <>
                       <Crown className="h-5 w-5 mr-2" />
                       Book {freeTicketsCount} Free + {paidTicketsCount} Paid - ₹{totalPrice}

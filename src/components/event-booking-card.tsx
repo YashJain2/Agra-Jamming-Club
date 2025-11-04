@@ -70,7 +70,7 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
         const data = await response.json();
         setSubscriptionStatus(data.data);
         
-        // Calculate event-specific pricing
+        // Calculate event-specific pricing including free ticket availability
         const pricingResponse = await fetch('/api/events/pricing', {
           method: 'POST',
           headers: {
@@ -79,7 +79,8 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
           credentials: 'include',
           body: JSON.stringify({
             eventDate: event.date,
-            eventPrice: event.price
+            eventPrice: event.price,
+            eventId: event.id,
           })
         });
         
@@ -112,16 +113,18 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
   const availableTickets = event.maxTickets - event.soldTickets;
   const isPastEvent = eventPricing?.isPastEvent || false;
   const hasActiveSubscription = subscriptionStatus?.canAccessEventsForFree || false;
-  // For subscription: 1 ticket is free, rest are paid
-  const isFree = hasActiveSubscription && quantity === 1 && (eventPricing?.isFree || false);
+  // Check if user can get free ticket (has subscription AND hasn't used it for this event)
+  const canGetFreeTicket = hasActiveSubscription && (eventPricing?.canGetFreeTicket || false);
+  // For subscription: 1 ticket is free, rest are paid (only if free ticket is available)
+  const isFree = canGetFreeTicket && quantity === 1;
   const displayPrice = eventPricing?.displayPrice || event.price;
   
-  // Calculate total price: for subscribers, 1 free + rest paid
+  // Calculate total price: for subscribers with free ticket available, 1 free + rest paid
   const calculateTotalPrice = () => {
     if (isPastEvent) return 0;
-    if (hasActiveSubscription && quantity === 1) return 0; // Free
-    if (hasActiveSubscription && quantity > 1) return (quantity - 1) * event.price; // 1 free + rest paid
-    return quantity * event.price; // Regular pricing
+    if (canGetFreeTicket && quantity === 1) return 0; // Free
+    if (canGetFreeTicket && quantity > 1) return (quantity - 1) * event.price; // 1 free + rest paid
+    return quantity * event.price; // Regular pricing (no subscription OR already used free ticket)
   };
   
   const totalPrice = calculateTotalPrice();

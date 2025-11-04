@@ -54,7 +54,9 @@ export default function RazorpayPayment({
 
   const availableTickets = maxTickets - soldTickets;
   
-  // Check subscription status
+  const [canGetFreeTicket, setCanGetFreeTicket] = useState(false);
+
+  // Check subscription status and free ticket availability
   useEffect(() => {
     const checkSubscription = async () => {
       if (session) {
@@ -62,7 +64,29 @@ export default function RazorpayPayment({
           const response = await fetch('/api/subscription/status');
           if (response.ok) {
             const data = await response.json();
-            setHasActiveSubscription(data.data?.canAccessEventsForFree || false);
+            const hasSub = data.data?.canAccessEventsForFree || false;
+            setHasActiveSubscription(hasSub);
+
+            // Check event-specific pricing including free ticket availability
+            if (hasSub) {
+              const pricingResponse = await fetch('/api/events/pricing', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                  eventDate: new Date().toISOString(), // We need event date, but this component doesn't have it
+                  eventPrice: price,
+                  eventId: eventId,
+                }),
+              });
+
+              if (pricingResponse.ok) {
+                const pricingData = await pricingResponse.json();
+                setCanGetFreeTicket(pricingData.data?.canGetFreeTicket || false);
+              }
+            }
           }
         } catch (error) {
           console.error('Error checking subscription:', error);
@@ -70,17 +94,17 @@ export default function RazorpayPayment({
       }
     };
     checkSubscription();
-  }, [session]);
+  }, [session, eventId, price]);
 
-  // Calculate total amount: for subscribers, 1 ticket is free, rest are paid
+  // Calculate total amount: for subscribers with free ticket available, 1 ticket is free, rest are paid
   const calculateTotalAmount = () => {
-    if (hasActiveSubscription && quantity === 1) {
+    if (canGetFreeTicket && quantity === 1) {
       return 0; // Free, but this shouldn't reach payment flow
     }
-    if (hasActiveSubscription && quantity > 1) {
+    if (canGetFreeTicket && quantity > 1) {
       return (quantity - 1) * price; // 1 free + rest paid
     }
-    return price * quantity; // Regular pricing
+    return price * quantity; // Regular pricing (no subscription OR already used free ticket)
   };
 
   const totalAmount = calculateTotalAmount();
@@ -331,7 +355,7 @@ export default function RazorpayPayment({
 
       {/* Price Summary */}
       <div className="mb-4 p-3 bg-gray-50 rounded-md">
-        {hasActiveSubscription && quantity > 1 ? (
+        {canGetFreeTicket && quantity > 1 ? (
           <div className="space-y-1">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">
