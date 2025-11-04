@@ -45,8 +45,28 @@ export function TicketBooking({ event }: TicketBookingProps) {
     daysRemaining?: number;
   } | null>(null);
 
-  const totalPrice = ticketQuantity * event.price;
+  // Calculate pricing based on subscription status
+  const calculateTotalPrice = () => {
+    if (isPastEvent) return 0;
+    
+    // If user has active subscription, 1 ticket is free, rest are paid
+    if (session && subscriptionStatus?.canAccessEventsForFree) {
+      if (ticketQuantity === 1) {
+        return 0; // Free
+      } else {
+        return (ticketQuantity - 1) * event.price; // 1 free + rest paid
+      }
+    }
+    
+    // Regular pricing for non-subscribers
+    return ticketQuantity * event.price;
+  };
+
+  const totalPrice = calculateTotalPrice();
   const isPastEvent = new Date(event.date) < new Date();
+  const hasActiveSubscription = session && subscriptionStatus?.canAccessEventsForFree;
+  const freeTicketsCount = hasActiveSubscription ? Math.min(1, ticketQuantity) : 0;
+  const paidTicketsCount = hasActiveSubscription ? Math.max(0, ticketQuantity - 1) : ticketQuantity;
 
   // Check subscription status for signed-in users
   useEffect(() => {
@@ -127,8 +147,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
     setIsProcessing(true);
     
     try {
-      // If user can book for free, create ticket directly without payment
-      if (canBookForFree) {
+      // If user has subscription and quantity is 1, create ticket directly without payment (free)
+      // If quantity > 1, we need to process payment for additional tickets
+      if (canBookForFree && ticketQuantity === 1) {
         const response = await fetch('/api/tickets', {
           method: 'POST',
           headers: {
@@ -143,12 +164,13 @@ export function TicketBooking({ event }: TicketBookingProps) {
 
         if (response.ok) {
           const data = await response.json();
-          alert('Tickets booked successfully! Your subscription covers this event.');
+          alert('Ticket booked successfully! Your subscription covers this event.');
           window.location.reload();
         } else {
           const errorData = await response.json();
           alert(errorData.error || 'Failed to book tickets');
         }
+        setIsProcessing(false);
         return;
       }
 
@@ -467,13 +489,29 @@ export function TicketBooking({ event }: TicketBookingProps) {
 
             {/* Price Summary */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              {hasActiveSubscription && ticketQuantity > 1 && (
+                <div className="mb-3 pb-3 border-b">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm text-gray-600">Free ticket (subscription):</span>
+                    <span className="text-sm font-semibold text-green-600">1 × FREE</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Additional tickets:</span>
+                    <span className="text-sm font-semibold">{paidTicketsCount} × ₹{event.price}</span>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Price per ticket:</span>
                 <span className="font-semibold">
                   {isPastEvent ? (
                     <span className="text-gray-400">N/A</span>
-                  ) : session && subscriptionStatus?.canAccessEventsForFree ? (
+                  ) : hasActiveSubscription && ticketQuantity === 1 ? (
                     <span className="text-green-600">FREE</span>
+                  ) : hasActiveSubscription && ticketQuantity > 1 ? (
+                    <span className="text-gray-500">
+                      1 × <span className="text-green-600">FREE</span> + {paidTicketsCount} × ₹{event.price}
+                    </span>
                   ) : (
                     `₹${event.price}`
                   )}
@@ -489,8 +527,13 @@ export function TicketBooking({ event }: TicketBookingProps) {
                   <span className="text-xl font-bold">
                     {isPastEvent ? (
                       <span className="text-gray-400">N/A</span>
-                    ) : session && subscriptionStatus?.canAccessEventsForFree ? (
+                    ) : hasActiveSubscription && totalPrice === 0 ? (
                       <span className="text-green-600">FREE</span>
+                    ) : hasActiveSubscription && totalPrice > 0 ? (
+                      <span>
+                        <span className="text-green-600 line-through text-sm mr-2">₹{ticketQuantity * event.price}</span>
+                        <span>₹{totalPrice}</span>
+                      </span>
                     ) : (
                       `₹${totalPrice}`
                     )}
@@ -517,10 +560,15 @@ export function TicketBooking({ event }: TicketBookingProps) {
                 </>
               ) : (
                 <>
-                  {session && subscriptionStatus?.canAccessEventsForFree ? (
+                  {hasActiveSubscription && totalPrice === 0 ? (
                     <>
                       <Crown className="h-5 w-5 mr-2" />
                       Book Free with Subscription
+                    </>
+                  ) : hasActiveSubscription && totalPrice > 0 ? (
+                    <>
+                      <Crown className="h-5 w-5 mr-2" />
+                      Book {freeTicketsCount} Free + {paidTicketsCount} Paid - ₹{totalPrice}
                     </>
                   ) : (
                     <>

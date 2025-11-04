@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createRazorpayOrder, razorpayConfig } from '@/lib/razorpay';
+import { checkUserSubscriptionStatus, hasUserUsedFreeAccessThisMonth } from '@/lib/subscription-utils';
 import { z } from 'zod';
 
 // Validation schema for creating payment order
@@ -124,8 +125,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Calculate total amount
-    const totalAmount = event.price * quantity;
+    // Calculate total amount based on subscription status
+    let totalAmount = event.price * quantity;
+    
+    // Check if user has active subscription for free access (1 ticket free)
+    if (!isGuestCheckout && session) {
+      const subscriptionStatus = await checkUserSubscriptionStatus(session.user.id);
+      
+      if (subscriptionStatus.hasActiveSubscription && !subscriptionStatus.isExpired) {
+        // Check if user already used free access for this event this month
+        const hasUsedFreeAccess = await hasUserUsedFreeAccessThisMonth(session.user.id, eventId);
+        
+        if (!hasUsedFreeAccess) {
+          // For subscribers: 1 ticket is free, rest are paid
+          if (quantity === 1) {
+            // This should not reach here - should be handled by free booking flow
+            return NextResponse.json(
+              { error: 'Single ticket booking with subscription should use free booking flow' },
+              { status: 400 }
+            );
+          } else {
+            // Partial free: charge only for additional tickets
+            totalAmount = (quantity - 1) * event.price;
+          }
+        }
+      }
+    }
 
     // Check minimum amount requirement for Razorpay (minimum ₹1 = 100 paise)
     if (totalAmount < 1) {

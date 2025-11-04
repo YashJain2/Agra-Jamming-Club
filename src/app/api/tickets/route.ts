@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
     let subscriptionInfo = null;
 
     if (isFreeBooking && !isGuestCheckout && userId) {
-      // This is a free booking request from a subscriber
+      // This is a free booking request from a subscriber (quantity = 1)
       totalPrice = 0;
       isFreeAccess = true;
       const subscriptionStatus = await checkUserSubscriptionStatus(userId);
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
         daysRemaining: subscriptionStatus.daysRemaining,
       };
     } else if (!isGuestCheckout && userId) {
-      // Check if user has active subscription for automatic free access
+      // Check if user has active subscription for free access
       const subscriptionStatus = await checkUserSubscriptionStatus(userId);
       
       if (subscriptionStatus.hasActiveSubscription && !subscriptionStatus.isExpired) {
@@ -227,8 +227,16 @@ export async function POST(request: NextRequest) {
         const hasUsedFreeAccess = await hasUserUsedFreeAccessThisMonth(userId, eventId);
         
         if (!hasUsedFreeAccess) {
-          totalPrice = 0; // Free access for subscribers
-          isFreeAccess = true;
+          // For subscribers: 1 ticket is free, rest are paid
+          if (quantity === 1) {
+            totalPrice = 0; // Completely free
+            isFreeAccess = true;
+          } else {
+            // Partial free: 1 free + rest paid
+            totalPrice = (quantity - 1) * event.price;
+            isFreeAccess = false; // Not completely free, but has free component
+          }
+          
           subscriptionInfo = {
             subscriptionId: subscriptionStatus.subscription!.id,
             planName: subscriptionStatus.subscription!.plan.name,

@@ -111,9 +111,20 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
 
   const availableTickets = event.maxTickets - event.soldTickets;
   const isPastEvent = eventPricing?.isPastEvent || false;
-  const isFree = eventPricing?.isFree || false;
+  const hasActiveSubscription = subscriptionStatus?.canAccessEventsForFree || false;
+  // For subscription: 1 ticket is free, rest are paid
+  const isFree = hasActiveSubscription && quantity === 1 && (eventPricing?.isFree || false);
   const displayPrice = eventPricing?.displayPrice || event.price;
-  const totalPrice = displayPrice * quantity;
+  
+  // Calculate total price: for subscribers, 1 free + rest paid
+  const calculateTotalPrice = () => {
+    if (isPastEvent) return 0;
+    if (hasActiveSubscription && quantity === 1) return 0; // Free
+    if (hasActiveSubscription && quantity > 1) return (quantity - 1) * event.price; // 1 free + rest paid
+    return quantity * event.price; // Regular pricing
+  };
+  
+  const totalPrice = calculateTotalPrice();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -280,7 +291,7 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
               </button>
             </div>
           ) : isFree ? (
-            // Free access booking
+            // Free access booking (quantity = 1, subscription active)
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -301,29 +312,57 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
                 
                 <div className="text-right">
                   <div className="text-sm text-gray-600">Total Price</div>
-                  <div className="text-2xl font-bold text-green-600">FREE</div>
-                  <div className="text-xs text-gray-500 line-through">
-                    ₹{event.price * quantity}
-                  </div>
+                  {quantity === 1 ? (
+                    <>
+                      <div className="text-2xl font-bold text-green-600">FREE</div>
+                      <div className="text-xs text-gray-500 line-through">
+                        ₹{event.price}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold">₹{totalPrice}</div>
+                      <div className="text-xs text-gray-500">
+                        1 free + {quantity - 1} × ₹{event.price}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <button
-                onClick={handleBookTicket}
-                disabled={loading || availableTickets === 0}
-                className="w-full py-3 px-4 rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  'Booking...'
-                ) : availableTickets === 0 ? (
-                  'Sold Out'
-                ) : (
-                  <div className="flex items-center justify-center">
-                    <Crown className="h-4 w-4 mr-2" />
-                    Book Free Ticket
-                  </div>
-                )}
-              </button>
+              {quantity === 1 ? (
+                <button
+                  onClick={handleBookTicket}
+                  disabled={loading || availableTickets === 0}
+                  className="w-full py-3 px-4 rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    'Booking...'
+                  ) : availableTickets === 0 ? (
+                    'Sold Out'
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <Crown className="h-4 w-4 mr-2" />
+                      Book Free Ticket
+                    </div>
+                  )}
+                </button>
+              ) : (
+                // For quantity > 1, use Razorpay payment
+                <RazorpayPayment
+                  eventId={event.id}
+                  eventTitle={event.title}
+                  price={event.price}
+                  maxTickets={event.maxTickets}
+                  soldTickets={event.soldTickets}
+                  onPaymentSuccess={(ticket) => {
+                    alert('Payment successful! Your tickets have been booked.');
+                  }}
+                  onPaymentError={(error) => {
+                    alert(`Payment failed: ${error}`);
+                  }}
+                />
+              )}
             </div>
           ) : (
             // Paid ticket booking with Razorpay

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface RazorpayPaymentProps {
@@ -50,9 +50,40 @@ export default function RazorpayPayment({
     email: '',
     phone: '',
   });
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   const availableTickets = maxTickets - soldTickets;
-  const totalAmount = price * quantity;
+  
+  // Check subscription status
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (session) {
+        try {
+          const response = await fetch('/api/subscription/status');
+          if (response.ok) {
+            const data = await response.json();
+            setHasActiveSubscription(data.data?.canAccessEventsForFree || false);
+          }
+        } catch (error) {
+          console.error('Error checking subscription:', error);
+        }
+      }
+    };
+    checkSubscription();
+  }, [session]);
+
+  // Calculate total amount: for subscribers, 1 ticket is free, rest are paid
+  const calculateTotalAmount = () => {
+    if (hasActiveSubscription && quantity === 1) {
+      return 0; // Free, but this shouldn't reach payment flow
+    }
+    if (hasActiveSubscription && quantity > 1) {
+      return (quantity - 1) * price; // 1 free + rest paid
+    }
+    return price * quantity; // Regular pricing
+  };
+
+  const totalAmount = calculateTotalAmount();
 
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -300,21 +331,45 @@ export default function RazorpayPayment({
 
       {/* Price Summary */}
       <div className="mb-4 p-3 bg-gray-50 rounded-md">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">
-            {quantity} ticket{quantity > 1 ? 's' : ''} × ₹{price}
-          </span>
-          <span className="font-semibold text-lg">₹{totalAmount}</span>
-        </div>
+        {hasActiveSubscription && quantity > 1 ? (
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">
+                Free ticket (subscription):
+              </span>
+              <span className="text-sm font-semibold text-green-600">1 × FREE</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">
+                Additional tickets:
+              </span>
+              <span className="text-sm font-semibold">{quantity - 1} × ₹{price}</span>
+            </div>
+            <div className="border-t pt-2 mt-2 flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-700">Total:</span>
+              <span className="font-semibold text-lg">
+                <span className="text-green-600 line-through text-sm mr-2">₹{quantity * price}</span>
+                ₹{totalAmount}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">
+              {quantity} ticket{quantity > 1 ? 's' : ''} × ₹{price}
+            </span>
+            <span className="font-semibold text-lg">₹{totalAmount}</span>
+          </div>
+        )}
       </div>
 
       {/* Payment Button */}
       <button
         onClick={handlePayment}
-        disabled={isLoading || availableTickets < quantity}
+        disabled={isLoading || availableTickets < quantity || totalAmount < 1}
         className="w-full bg-pink-500 text-white py-3 px-4 rounded-md font-medium hover:bg-pink-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
       >
-        {isLoading ? 'Processing...' : `Pay ₹${totalAmount}`}
+        {isLoading ? 'Processing...' : totalAmount < 1 ? 'Free with Subscription' : `Pay ₹${totalAmount}`}
       </button>
 
       {availableTickets < quantity && (
