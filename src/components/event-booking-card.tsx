@@ -130,7 +130,7 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
       {/* Event Image */}
       <div className="h-48 bg-gray-200 relative">
         <img
-          src={event.imageUrl}
+          src={event.imageUrl || '/raahein-event.jpg'}
           alt={event.title}
           className="w-full h-full object-cover"
           onError={(e) => {
