@@ -6,6 +6,15 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 text-gray-800 py-24 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/home-banner.jpg"
+            alt="Agra Jamming Club"
+            className="w-full h-full object-cover opacity-20"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-100/90 via-purple-100/90 to-indigo-100/90"></div>
+        </div>
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
             What is Agra Jamming Club
@@ -111,6 +120,17 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 Founder&apos;s Note — by Riya Agarwal
               </h2>
+            </div>
+            
+            {/* Founder Photo */}
+            <div className="mb-8 flex justify-center">
+              <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-pink-200 shadow-lg">
+                <img
+                  src="/founder-riya.jpg"
+                  alt="Riya Agarwal - Founder, Agra Jamming Club"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
             
             <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
