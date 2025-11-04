@@ -214,13 +214,13 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
             <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
               <div
                 className={`h-2.5 rounded-full transition-all duration-500 ${
-                  availableTickets / event.maxTickets > 0.5
+                  event.maxTickets > 0 && availableTickets / event.maxTickets > 0.5
                     ? 'bg-green-500'
-                    : availableTickets / event.maxTickets > 0.2
+                    : event.maxTickets > 0 && availableTickets / event.maxTickets > 0.2
                     ? 'bg-yellow-500'
                     : 'bg-red-500'
                 }`}
-                style={{ width: `${(availableTickets / event.maxTickets) * 100}%` }}
+                style={{ width: `${event.maxTickets > 0 ? (availableTickets / event.maxTickets) * 100 : 0}%` }}
               ></div>
             </div>
 
