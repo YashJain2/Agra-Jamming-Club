@@ -429,10 +429,13 @@ export default function AdminDashboard() {
                 <div key={event.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                   <div className="relative h-48">
                     <Image
-                      src={event.imageUrl || "https://via.placeholder.com/400x300/6366f1/ffffff?text=No+Image"}
+                      src={event.imageUrl || '/raahein-event.jpg'}
                       alt={event.title}
                       fill
                       className="object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://via.placeholder.com/400x300/6366f1/ffffff?text=No+Image';
+                      }}
                     />
                     <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold ${
                       event.status === 'PUBLISHED' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'
@@ -740,10 +743,13 @@ export default function AdminDashboard() {
                 {/* Event Image */}
                 <div className="relative h-64 rounded-lg overflow-hidden">
                   <Image
-                    src={selectedEvent.imageUrl || "https://via.placeholder.com/400x300/6366f1/ffffff?text=No+Image"}
+                    src={selectedEvent.imageUrl || '/raahein-event.jpg'}
                     alt={selectedEvent.title}
                     fill
                     className="object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://via.placeholder.com/400x300/6366f1/ffffff?text=No+Image';
+                    }}
                   />
                 </div>
 
