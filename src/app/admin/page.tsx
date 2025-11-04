@@ -127,7 +127,7 @@ export default function AdminDashboard() {
       setLoading(true)
       const [eventsRes, subscriptionsRes, ticketsRes] = await Promise.all([
         fetch('/api/events', { credentials: 'include' }),
-        fetch('/api/subscriptions', { credentials: 'include' }),
+        fetch('/api/subscriptions?limit=1000', { credentials: 'include' }), // Fetch all subscriptions for admin
         fetch('/api/verification/tickets', { credentials: 'include' })
       ])
 
