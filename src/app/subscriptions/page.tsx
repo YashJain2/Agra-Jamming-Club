@@ -145,7 +145,7 @@ export default function SubscriptionsPage() {
                     <p className="text-purple-100 mt-1">Get access to premium events and exclusive benefits</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-3xl font-bold">₹1</span>
+                    <span className="text-3xl font-bold">₹299</span>
                     <div className="text-purple-100 text-sm">per month</div>
                   </div>
                 </div>
