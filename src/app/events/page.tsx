@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calendar, MapPin, Clock, Users, Ticket, ArrowRight, Crown, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, Ticket, ArrowRight, AlertCircle } from 'lucide-react';
 import { EventBookingCard } from '@/components/event-booking-card';
-import { SubscriptionStatusCard } from '@/components/subscription-status-card';
 
 interface Event {
   id: string;
@@ -99,13 +98,6 @@ export default function EventsPage() {
         </div>
       </section>
 
-      {/* Subscription Status */}
-      <section className="py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SubscriptionStatusCard />
-        </div>
-      </section>
-
       {/* Events Grid */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -170,38 +162,6 @@ export default function EventsPage() {
               <p className="font-semibold text-gray-900 mt-2">
                 • Every individual who will attend the event should fill the form separately for verification. Anyone who fails to do so will be denied entry in the session.
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Subscription CTA */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-8 text-white text-center">
-            <div className="flex items-center justify-center mb-4">
-              <Crown className="h-8 w-8 mr-2" />
-              <h2 className="text-2xl sm:text-3xl font-bold">
-                Get FREE Access to All Events!
-              </h2>
-            </div>
-            <p className="text-base sm:text-lg md:text-xl text-purple-100 mb-6 max-w-2xl mx-auto">
-              Subscribe to our monthly membership and enjoy unlimited free access to all events, 
-              priority booking, member discounts, and exclusive benefits.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                href="/subscriptions"
-                className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
-              >
-                Subscribe Now - ₹299/month
-              </Link>
-              <Link 
-                href="/dashboard"
-                className="bg-purple-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-400 transition-colors inline-block"
-              >
-                View My Dashboard
-              </Link>
             </div>
           </div>
         </div>
