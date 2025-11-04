@@ -45,11 +45,31 @@ export default function SubscriptionCheckoutPage() {
       }
       
       const data = await response.json();
-      setPlans(data.data || []);
+      // Filter to show only ₹299 monthly plan (duration = 1 month)
+      const filteredPlans = (data.data || []).filter((plan: SubscriptionPlan) => 
+        plan.price === 299 && plan.duration === 1
+      );
       
-      // Select the first plan by default
-      if (data.data && data.data.length > 0) {
-        setSelectedPlan(data.data[0]);
+      setPlans(filteredPlans);
+      
+      // Select the ₹299 plan by default if available
+      if (filteredPlans.length > 0) {
+        setSelectedPlan(filteredPlans[0]);
+      } else {
+        // If plan doesn't exist, try to initialize it
+        const initResponse = await fetch('/api/subscription-plans/init', {
+          method: 'POST',
+        });
+        
+        if (initResponse.ok) {
+          const initData = await initResponse.json();
+          if (initData.data) {
+            setPlans([initData.data]);
+            setSelectedPlan(initData.data);
+          }
+        } else {
+          setError('No subscription plan available. Please contact support.');
+        }
       }
     } catch (error) {
       console.error('Error fetching plans:', error);

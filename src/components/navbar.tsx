@@ -39,11 +39,8 @@ export function Navbar() {
               <Link href="/events" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Events
               </Link>
-              <Link href="/subscriptions" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+              <Link href="/subscriptions" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Subscriptions
-                <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-                  Under Development
-                </span>
               </Link>
               <Link href="/guest-tickets" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 My Tickets
@@ -89,11 +86,8 @@ export function Navbar() {
             <Link href="/events" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Events
             </Link>
-            <Link href="/subscriptions" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+            <Link href="/subscriptions" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Subscriptions
-              <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-                Under Development
-              </span>
             </Link>
             {user && (
               <Link href="/my-tickets" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">
@@ -154,11 +148,8 @@ export function Navbar() {
               <Link href="/events" className="text-gray-700 hover:text-pink-500 block px-3 py-2 rounded-md text-base font-medium">
                 Events
               </Link>
-              <Link href="/subscriptions" className="text-gray-700 hover:text-pink-500 block px-3 py-2 rounded-md text-base font-medium flex items-center">
+              <Link href="/subscriptions" className="text-gray-700 hover:text-pink-500 block px-3 py-2 rounded-md text-base font-medium">
                 Subscriptions
-                <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-                  Under Development
-                </span>
               </Link>
               {isAdmin && (
                 <Link href="/admin" className="text-gray-700 hover:text-pink-500 block px-3 py-2 rounded-md text-base font-medium">

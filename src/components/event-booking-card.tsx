@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, Users, Ticket, Crown, Gift } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, Ticket, Crown, Gift, AlertCircle, XCircle } from 'lucide-react';
 import RazorpayPayment from './razorpay-payment';
 
 interface Event {
@@ -34,6 +34,15 @@ interface SubscriptionStatus {
   daysRemaining?: number;
 }
 
+interface EventPricing {
+  isFree: boolean;
+  displayPrice: number;
+  isPastEvent: boolean;
+  subscriptionValid: boolean;
+  subscriptionEndDate?: Date;
+  reason: string;
+}
+
 interface EventBookingCardProps {
   event: Event;
   onBookTicket: (eventId: string, quantity: number, isFreeAccess: boolean) => void;
@@ -42,6 +51,7 @@ interface EventBookingCardProps {
 
 export function EventBookingCard({ event, onBookTicket, className = '' }: EventBookingCardProps) {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  const [eventPricing, setEventPricing] = useState<EventPricing | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
@@ -59,6 +69,24 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
       if (response.ok) {
         const data = await response.json();
         setSubscriptionStatus(data.data);
+        
+        // Calculate event-specific pricing
+        const pricingResponse = await fetch('/api/events/pricing', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            eventDate: event.date,
+            eventPrice: event.price
+          })
+        });
+        
+        if (pricingResponse.ok) {
+          const pricingData = await pricingResponse.json();
+          setEventPricing(pricingData.data);
+        }
       }
     } catch (error) {
       console.error('Error fetching subscription status:', error);
@@ -68,11 +96,11 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
   };
 
   const handleBookTicket = async () => {
-    if (loading) return;
+    if (loading || eventPricing?.isPastEvent) return;
     
     setLoading(true);
     try {
-      const isFreeAccess = subscriptionStatus?.canAccessEventsForFree || false;
+      const isFreeAccess = eventPricing?.isFree || false;
       await onBookTicket(event.id, quantity, isFreeAccess);
     } catch (error) {
       console.error('Error booking ticket:', error);
@@ -82,8 +110,9 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
   };
 
   const availableTickets = event.maxTickets - event.soldTickets;
-  const canAccessForFree = subscriptionStatus?.canAccessEventsForFree || false;
-  const displayPrice = canAccessForFree ? 0 : event.price;
+  const isPastEvent = eventPricing?.isPastEvent || false;
+  const isFree = eventPricing?.isFree || false;
+  const displayPrice = eventPricing?.displayPrice || event.price;
   const totalPrice = displayPrice * quantity;
 
   const formatDate = (dateString: string) => {
@@ -109,11 +138,21 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
           }}
         />
         
-        {/* Free Access Badge */}
-        {canAccessForFree && (
+        {/* Status Badge */}
+        {isPastEvent ? (
+          <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
+            <XCircle className="h-4 w-4 mr-1" />
+            PAST EVENT
+          </div>
+        ) : isFree ? (
           <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
             <Crown className="h-4 w-4 mr-1" />
             FREE ACCESS
+          </div>
+        ) : (
+          <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
+            <Ticket className="h-4 w-4 mr-1" />
+            ₹{event.price}
           </div>
         )}
       </div>
@@ -146,9 +185,23 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
         </div>
 
         {/* Subscription Status */}
-        {!subscriptionLoading && (
+        {!subscriptionLoading && eventPricing && (
           <div className="mb-4">
-            {canAccessForFree ? (
+            {isPastEvent ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex items-center">
+                  <XCircle className="h-5 w-5 text-red-600 mr-2" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">
+                      This event has already passed
+                    </p>
+                    <p className="text-xs text-red-600">
+                      Booking is no longer available
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : isFree ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-center">
                   <Gift className="h-5 w-5 text-green-600 mr-2" />
@@ -164,9 +217,19 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
               </div>
             ) : subscriptionStatus?.hasActiveSubscription ? (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-sm text-yellow-800">
-                  Subscription expired. Regular pricing applies.
-                </p>
+                <div className="flex items-center">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-800">
+                      {eventPricing.reason}
+                    </p>
+                    {eventPricing.subscriptionEndDate && (
+                      <p className="text-xs text-yellow-600">
+                        Subscription expires: {new Date(eventPricing.subscriptionEndDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -180,7 +243,43 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
 
         {/* Booking Section */}
         <div className="border-t pt-4">
-          {canAccessForFree ? (
+          {isPastEvent ? (
+            // Past event - disabled booking
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Quantity
+                  </label>
+                  <select
+                    value={quantity}
+                    disabled={true}
+                    className="px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                  >
+                    <option value={1}>1</option>
+                  </select>
+                </div>
+                
+                <div className="text-right">
+                  <div className="text-sm text-gray-600">Total Price</div>
+                  <div className="text-2xl font-bold text-gray-400">N/A</div>
+                  <div className="text-xs text-gray-500">
+                    Event has passed
+                  </div>
+                </div>
+              </div>
+
+              <button
+                disabled={true}
+                className="w-full py-3 px-4 rounded-md font-medium bg-gray-400 text-white cursor-not-allowed"
+              >
+                <div className="flex items-center justify-center">
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Event Has Passed
+                </div>
+              </button>
+            </div>
+          ) : isFree ? (
             // Free access booking
             <div className="space-y-4">
               <div className="flex items-center justify-between">

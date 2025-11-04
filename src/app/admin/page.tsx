@@ -354,10 +354,10 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Recent Events */}
+            {/* All Events */}
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">Recent Events</h3>
+                <h3 className="text-lg font-medium text-gray-900">All Events</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {events.slice(0, 5).map((event) => (
+                    {events.map((event) => (
                       <tr key={event.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{event.title}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(event.date).toLocaleDateString()}</td>

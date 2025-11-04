@@ -40,12 +40,13 @@ export function TicketBooking({ event }: TicketBookingProps) {
   const [isGuestCheckout, setIsGuestCheckout] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     hasActiveSubscription: boolean;
-    canAccessForFree: boolean;
+    canAccessEventsForFree: boolean;
     subscription?: any;
     daysRemaining?: number;
   } | null>(null);
 
   const totalPrice = ticketQuantity * event.price;
+  const isPastEvent = new Date(event.date) < new Date();
 
   // Check subscription status for signed-in users
   useEffect(() => {
@@ -89,8 +90,14 @@ export function TicketBooking({ event }: TicketBookingProps) {
   };
 
   const handleBooking = async () => {
+    // Prevent booking for past events
+    if (isPastEvent) {
+      alert('This event has already passed. Booking is no longer available.');
+      return;
+    }
+
     // Check if user has active subscription and can book for free
-    const canBookForFree = session && subscriptionStatus?.canAccessForFree;
+    const canBookForFree = session && subscriptionStatus?.canAccessEventsForFree;
     
     // Determine if this should be guest checkout
     const shouldUseGuestCheckout = !session || isGuestCheckout;
@@ -393,10 +400,27 @@ export function TicketBooking({ event }: TicketBookingProps) {
               </p>
             </div>
 
-            {/* Subscription Status */}
-            {session && subscriptionStatus && (
+            {/* Past Event Status */}
+            {isPastEvent && (
               <div className="mb-6">
-                {subscriptionStatus.canAccessForFree ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 text-red-600 mr-2" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-800">Event Has Passed</h3>
+                      <p className="text-red-700">
+                        This event has already occurred. Booking is no longer available.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Subscription Status */}
+            {session && subscriptionStatus && !isPastEvent && (
+              <div className="mb-6">
+                {subscriptionStatus.canAccessEventsForFree ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center">
                       <Crown className="h-5 w-5 text-green-600 mr-2" />
@@ -446,7 +470,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Price per ticket:</span>
                 <span className="font-semibold">
-                  {session && subscriptionStatus?.canAccessForFree ? (
+                  {isPastEvent ? (
+                    <span className="text-gray-400">N/A</span>
+                  ) : session && subscriptionStatus?.canAccessEventsForFree ? (
                     <span className="text-green-600">FREE</span>
                   ) : (
                     `₹${event.price}`
@@ -461,7 +487,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total:</span>
                   <span className="text-xl font-bold">
-                    {session && subscriptionStatus?.canAccessForFree ? (
+                    {isPastEvent ? (
+                      <span className="text-gray-400">N/A</span>
+                    ) : session && subscriptionStatus?.canAccessEventsForFree ? (
                       <span className="text-green-600">FREE</span>
                     ) : (
                       `₹${totalPrice}`
@@ -474,17 +502,22 @@ export function TicketBooking({ event }: TicketBookingProps) {
             {/* Book Now Button */}
             <button
               onClick={handleBooking}
-              disabled={isProcessing || event.availableTickets === 0}
+              disabled={isProcessing || event.availableTickets === 0 || isPastEvent}
               className="w-full bg-pink-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              {isProcessing ? (
+              {isPastEvent ? (
+                <>
+                  <Calendar className="h-5 w-5 mr-2" />
+                  Event Has Passed
+                </>
+              ) : isProcessing ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Processing...
                 </>
               ) : (
                 <>
-                  {session && subscriptionStatus?.canAccessForFree ? (
+                  {session && subscriptionStatus?.canAccessEventsForFree ? (
                     <>
                       <Crown className="h-5 w-5 mr-2" />
                       Book Free with Subscription

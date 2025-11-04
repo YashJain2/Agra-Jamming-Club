@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calendar, MapPin, Clock, Users, Ticket, ArrowRight, Crown } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, Ticket, ArrowRight, Crown, AlertCircle } from 'lucide-react';
 import { EventBookingCard } from '@/components/event-booking-card';
 import { SubscriptionStatusCard } from '@/components/subscription-status-card';
 
@@ -99,6 +99,34 @@ export default function EventsPage() {
         </div>
       </section>
 
+      {/* Terms & Conditions Section */}
+      <section className="py-8 bg-gray-50 border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+              <AlertCircle className="h-6 w-6 text-purple-600 mr-2" />
+              Terms & Conditions
+            </h2>
+            <div className="space-y-3 text-sm text-gray-700">
+              <p>• No refunds or adjustments once tickets are booked.</p>
+              <p>• No alcohol, smoking, or substances allowed.</p>
+              <p>• Kids are welcome, but parents must ensure they don&apos;t cause disturbance.</p>
+              <p>• This is a No Judgement Zone — sing freely; perfection isn&apos;t the goal.</p>
+              <p>• No Vulgar Songs or Language — keep lyrics and behavior respectful.</p>
+              <p>• No Food Allowed during the session.</p>
+              <p>• Pre-Approval Required for original compositions — all content must align with AJC&apos;s values.</p>
+              <p>• Inclusive Vibes Only — everyone deserves to feel safe and accepted.</p>
+              <p>• Cheer & Encourage — we rise together.</p>
+              <p>• Be On Time and respect the schedule.</p>
+              <p>• Seating will be on first come first serve basis.</p>
+              <p className="font-semibold text-gray-900 mt-2">
+                • Every individual who will attend the event should fill the form separately for verification. Anyone who fails to do so will be denied entry in the session.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Subscription Status */}
       <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -166,7 +194,7 @@ export default function EventsPage() {
                 href="/subscriptions"
                 className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
               >
-                Subscribe Now - ₹999/month
+                Subscribe Now - ₹1/month
               </Link>
               <Link 
                 href="/dashboard"

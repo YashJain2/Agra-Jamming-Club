@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Check, Star, Calendar, Users, Music, Gift, Crown, Clock, CheckCircle, XCircle, User } from 'lucide-react';
+import { Check, Star, Calendar, Users, Music, Gift, Crown, Clock, CheckCircle, XCircle, User, Sparkles } from 'lucide-react';
 
 interface Subscription {
   id: string;
@@ -161,17 +161,124 @@ export default function SubscriptionsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Monthly Subscription
+              Join the Tribe — Become a Member
             </h1>
-            <p className="text-xl text-purple-100 max-w-2xl mx-auto">
-              Join our musical community and never miss an event. Get exclusive access to all our monthly gatherings.
+            <p className="text-xl text-purple-100 max-w-3xl mx-auto">
+              The Agra Jamming Club isn&apos;t an event — it&apos;s a growing family of voices, instruments, and emotions.
+              By becoming a member, you don&apos;t just attend the jams — you build them.
+            </p>
+            <p className="text-lg text-purple-200 max-w-2xl mx-auto mt-4">
+              Your small contribution helps us create intimate, safe, and beautifully managed gatherings twice every month — spaces that stay authentic, inclusive, and alive.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Pricing Card */}
+      {/* Pricing Cards */}
       <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🎟️ Membership Plans
+            </h2>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Plan 1: One Meetup */}
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-purple-200">
+              <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-8 text-white text-center">
+                <div className="flex justify-center mb-4">
+                  <Crown className="h-12 w-12" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Monthly Plan</h3>
+                <p className="text-pink-100 mb-6 text-sm">Access to one meetup per month</p>
+                <div className="text-5xl font-bold mb-2">₹199</div>
+                <div className="text-pink-100 text-sm">per month</div>
+              </div>
+
+              <div className="p-8">
+                <h4 className="text-lg font-semibold mb-4 text-center text-gray-900">What&apos;s Included:</h4>
+                <div className="space-y-3 mb-8">
+                  {features.map((feature, index) => (
+                    <div key={index} className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700 text-sm">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Plan 2: Both Meetups */}
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-purple-500 relative">
+              <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold">
+                POPULAR
+              </div>
+              <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-8 text-white text-center">
+                <div className="flex justify-center mb-4">
+                  <Crown className="h-12 w-12" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Full Access</h3>
+                <p className="text-purple-100 mb-6 text-sm">Access to both monthly meetups</p>
+                <div className="text-5xl font-bold mb-2">₹299</div>
+                <div className="text-purple-100 text-sm">per month</div>
+              </div>
+
+              <div className="p-8">
+                <h4 className="text-lg font-semibold mb-4 text-center text-gray-900">What&apos;s Included:</h4>
+                <div className="space-y-3 mb-8">
+                  {features.map((feature, index) => (
+                    <div key={index} className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700 text-sm">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Membership Benefits Section */}
+          <div className="mt-12 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-8 max-w-4xl mx-auto">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">As a member, you&apos;ll get:</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-start">
+                <Check className="h-5 w-5 text-purple-600 mr-3 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">Priority invites & early access to events</span>
+              </div>
+              <div className="flex items-start">
+                <Check className="h-5 w-5 text-purple-600 mr-3 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">Entry into our Members-Only WhatsApp group</span>
+              </div>
+              <div className="flex items-start">
+                <Check className="h-5 w-5 text-purple-600 mr-3 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">Special opportunities to perform, host, or collaborate</span>
+              </div>
+              <div className="flex items-start">
+                <Check className="h-5 w-5 text-purple-600 mr-3 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">Exclusive offers and community perks from our partners</span>
+              </div>
+            </div>
+            <div className="mt-6 pt-6 border-t border-purple-200 text-center">
+              <p className="text-lg font-semibold text-gray-900 mb-2">
+                But more than all of that — you&apos;ll get belonging.
+              </p>
+              <p className="text-gray-700 italic">
+                A circle that listens when you sing off-key. A crowd that claps when you take a chance. A city that&apos;s learning to sing together again.
+              </p>
+              <div className="mt-4 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-purple-600 mr-2" />
+                <p className="text-lg font-semibold text-purple-600">
+                  Join the movement. Join the music. Join Agra Jamming Club.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Old Single Card - Hidden, keeping for reference but replaced above */}
+      <section className="hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-8 text-white text-center">

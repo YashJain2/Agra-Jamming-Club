@@ -156,3 +156,104 @@ export async function getFreeEventsLimitThisMonth(userId: string): Promise<numbe
   
   return 0;
 }
+
+/**
+ * Check if a user can access a specific event for free based on their subscription
+ * This considers the event date and subscription validity period
+ */
+export async function canUserAccessEventForFree(userId: string, eventDate: Date): Promise<{
+  canAccessForFree: boolean;
+  reason: 'no_subscription' | 'subscription_expired' | 'event_past' | 'subscription_valid';
+  subscriptionEndDate?: Date;
+}> {
+  try {
+    const subscriptionStatus = await checkUserSubscriptionStatus(userId);
+    
+    // No subscription
+    if (!subscriptionStatus.hasActiveSubscription || !subscriptionStatus.subscription) {
+      return {
+        canAccessForFree: false,
+        reason: 'no_subscription'
+      };
+    }
+
+    const now = new Date();
+    const subscription = subscriptionStatus.subscription;
+    
+    // Check if event is in the past
+    if (eventDate < now) {
+      return {
+        canAccessForFree: false,
+        reason: 'event_past'
+      };
+    }
+
+    // Check if subscription expires before the event date
+    if (subscription.endDate < eventDate) {
+      return {
+        canAccessForFree: false,
+        reason: 'subscription_expired',
+        subscriptionEndDate: subscription.endDate
+      };
+    }
+
+    // Subscription is valid for this event
+    return {
+      canAccessForFree: true,
+      reason: 'subscription_valid',
+      subscriptionEndDate: subscription.endDate
+    };
+
+  } catch (error) {
+    console.error('Error checking event access:', error);
+    return {
+      canAccessForFree: false,
+      reason: 'no_subscription'
+    };
+  }
+}
+
+/**
+ * Check if an event is in the past
+ */
+export function isEventPast(eventDate: Date): boolean {
+  const now = new Date();
+  return eventDate < now;
+}
+
+/**
+ * Get event pricing information for a user
+ */
+export async function getEventPricingForUser(userId: string, eventDate: Date, eventPrice: number): Promise<{
+  isFree: boolean;
+  displayPrice: number;
+  isPastEvent: boolean;
+  subscriptionValid: boolean;
+  subscriptionEndDate?: Date;
+  reason: string;
+}> {
+  const isPastEvent = isEventPast(eventDate);
+  
+  if (isPastEvent) {
+    return {
+      isFree: false,
+      displayPrice: eventPrice,
+      isPastEvent: true,
+      subscriptionValid: false,
+      reason: 'Event has already passed'
+    };
+  }
+
+  const accessInfo = await canUserAccessEventForFree(userId, eventDate);
+  
+  return {
+    isFree: accessInfo.canAccessForFree,
+    displayPrice: accessInfo.canAccessForFree ? 0 : eventPrice,
+    isPastEvent: false,
+    subscriptionValid: accessInfo.canAccessForFree,
+    subscriptionEndDate: accessInfo.subscriptionEndDate,
+    reason: accessInfo.reason === 'subscription_valid' ? 'Free with subscription' : 
+            accessInfo.reason === 'subscription_expired' ? 'Subscription expires before event' :
+            accessInfo.reason === 'no_subscription' ? 'No active subscription' : 'Unknown'
+  };
+}

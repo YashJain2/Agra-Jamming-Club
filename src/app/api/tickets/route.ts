@@ -306,23 +306,21 @@ export async function POST(request: NextRequest) {
 
     // Log the action (only for authenticated users)
     if (!isGuestCheckout && session) {
-      await prisma.$executeRaw`
-        INSERT INTO "AuditLog" (
-          id, "userId", action, entity, "entityId", 
-          "newValues", "ipAddress", "userAgent", "createdAt"
-        ) VALUES (
-          ${`audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`},
-          ${session.user.id}, 'CREATE', 'Ticket', ${formattedTicket.id},
-          ${JSON.stringify({
+      await prisma.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: 'CREATE',
+          entity: 'Ticket',
+          entityId: formattedTicket.id,
+          newValues: {
             eventId: formattedTicket.eventId,
             quantity: formattedTicket.quantity,
             totalPrice: formattedTicket.totalPrice,
-          })},
-          ${request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null},
-          ${request.headers.get('user-agent') || null},
-          NOW()
-        )
-      `;
+          },
+          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+          userAgent: request.headers.get('user-agent'),
+        },
+      });
     }
 
     return NextResponse.json({
