@@ -107,19 +107,6 @@ body {
   border-radius: 50%;
 }
 
-/* Responsive hero section */
-@media (max-width: 640px) {
-  section:first-of-type {
-    min-height: 100vh;
-    padding: 2rem 0;
-  }
-}
-
-@media (min-width: 641px) {
-  section:first-of-type {
-    min-height: 100vh;
-  }
-}
 
 .founder-image-container {
   position: relative;
