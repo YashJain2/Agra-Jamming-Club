@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
     // Regular users can only see their own subscriptions
     if (session.user.role === 'USER') {
       where.userId = session.user.id;
+      // Regular users should only see ACTIVE subscriptions (not PENDING/FAILED)
+      where.status = 'ACTIVE';
     } else if (userId) {
       where.userId = userId;
     }

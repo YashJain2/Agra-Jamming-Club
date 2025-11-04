@@ -19,24 +19,24 @@ export default function Home() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-8">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-8 sm:mb-10 leading-tight drop-shadow-2xl">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-6 sm:py-8">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight drop-shadow-2xl">
             What is Agra Jamming Club
           </h1>
-          <div className="space-y-4 sm:space-y-5 text-base sm:text-lg md:text-xl text-white leading-relaxed drop-shadow-lg">
-            <p className="font-medium text-white drop-shadow-md leading-relaxed">
+          <div className="space-y-3 sm:space-y-4 text-base sm:text-lg md:text-xl text-white leading-normal drop-shadow-lg">
+            <p className="font-medium text-white drop-shadow-md leading-normal">
               In a city of monuments, we&apos;re building a new heritage — of music, connection, and community.
             </p>
-            <p className="text-white drop-shadow-md leading-relaxed">
+            <p className="text-white drop-shadow-md leading-normal">
               A space where music lovers come together to sing, unwind, and simply be.
             </p>
-            <p className="italic text-white/95 drop-shadow-md leading-relaxed">
+            <p className="italic text-white/95 drop-shadow-md leading-normal">
               No stage. No competition. Just a shared heartbeat.
             </p>
-            <p className="text-white drop-shadow-md leading-relaxed">
+            <p className="text-white drop-shadow-md leading-normal">
               Strangers become friends. Voices blend into something bigger. No spotlight. No judgment. Just pure music — and belonging.
             </p>
-            <div className="pt-6 sm:pt-8 flex items-center justify-center">
+            <div className="pt-4 sm:pt-6 flex items-center justify-center">
               <span className="text-2xl sm:text-3xl mr-2">✨</span>
               <p className="text-xl sm:text-2xl font-semibold text-pink-200 drop-shadow-lg">
                 Where music finds its people.

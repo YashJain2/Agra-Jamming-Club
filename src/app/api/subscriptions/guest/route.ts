@@ -57,19 +57,29 @@ export async function POST(request: NextRequest) {
     let userId: string;
 
     if (existingGuestUser) {
-      // Check if this user already has an active subscription
+      // Check if this user already has any subscription (ACTIVE or PENDING)
       const existingSubscription = await prisma.subscription.findFirst({
         where: {
           userId: existingGuestUser.id,
-          status: 'ACTIVE',
+          status: {
+            in: ['ACTIVE', 'PENDING']
+          },
         },
       });
 
       if (existingSubscription) {
-        return NextResponse.json(
-          { error: 'This email already has an active subscription' },
-          { status: 400 }
-        );
+        // If it's pending and payment failed, cancel it first
+        if (existingSubscription.status === 'PENDING') {
+          await prisma.subscription.update({
+            where: { id: existingSubscription.id },
+            data: { status: 'CANCELLED' }
+          });
+        } else {
+          return NextResponse.json(
+            { error: 'This email already has an active subscription' },
+            { status: 400 }
+          );
+        }
       }
 
       userId = existingGuestUser.id;
