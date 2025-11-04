@@ -23,21 +23,18 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-8 sm:mb-10 leading-tight drop-shadow-2xl">
             What is Agra Jamming Club
           </h1>
-          <div className="space-y-5 sm:space-y-6 text-base sm:text-lg md:text-xl text-white leading-relaxed drop-shadow-lg">
+          <div className="space-y-4 sm:space-y-5 text-base sm:text-lg md:text-xl text-white leading-relaxed drop-shadow-lg">
             <p className="font-medium text-white drop-shadow-md leading-relaxed">
-              In a city known for its monuments, a new kind of heritage is being built — one of music, connection, and community.
+              In a city of monuments, we&apos;re building a new heritage — of music, connection, and community.
             </p>
             <p className="text-white drop-shadow-md leading-relaxed">
-              Agra Jamming Club is a space where music lovers, dreamers, and everyday people come together to sing, unwind, and simply be.
+              A space where music lovers come together to sing, unwind, and simply be.
             </p>
             <p className="italic text-white/95 drop-shadow-md leading-relaxed">
-              It&apos;s not a stage or a competition — it&apos;s a shared heartbeat.
+              No stage. No competition. Just a shared heartbeat.
             </p>
             <p className="text-white drop-shadow-md leading-relaxed">
-              Here, strangers turn into friends, and voices blend into something far bigger than any one song.
-            </p>
-            <p className="text-white drop-shadow-md leading-relaxed">
-              No spotlight. No judgment. Just pure, honest music — and the joy of belonging.
+              Strangers become friends. Voices blend into something bigger. No spotlight. No judgment. Just pure music — and belonging.
             </p>
             <div className="pt-6 sm:pt-8 flex items-center justify-center">
               <span className="text-2xl sm:text-3xl mr-2">✨</span>
