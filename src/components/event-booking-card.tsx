@@ -194,11 +194,55 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
             <MapPin className="h-4 w-4 mr-2" />
             {event.venue}, {event.city}
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Users className="h-4 w-4 mr-2" />
-            {availableTickets} tickets available
-          </div>
         </div>
+
+        {/* Attractive Ticket Counter */}
+        {!isPastEvent && (
+          <div className="mb-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 border border-pink-200">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <Ticket className="h-5 w-5 text-pink-600 mr-2" />
+                <span className="text-sm font-semibold text-gray-700">Tickets Remaining</span>
+              </div>
+              <div className="flex items-baseline">
+                <span className="text-2xl font-bold text-pink-600">{availableTickets}</span>
+                <span className="text-sm text-gray-500 ml-1">/ {event.maxTickets}</span>
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+              <div
+                className={`h-2.5 rounded-full transition-all duration-500 ${
+                  availableTickets / event.maxTickets > 0.5
+                    ? 'bg-green-500'
+                    : availableTickets / event.maxTickets > 0.2
+                    ? 'bg-yellow-500'
+                    : 'bg-red-500'
+                }`}
+                style={{ width: `${(availableTickets / event.maxTickets) * 100}%` }}
+              ></div>
+            </div>
+
+            {/* Urgency Message */}
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-600">
+                {event.maxTickets - availableTickets} tickets sold
+              </span>
+              {availableTickets <= 20 && availableTickets > 0 && (
+                <span className="text-red-600 font-semibold animate-pulse">
+                  ⚠️ Only {availableTickets} left!
+                </span>
+              )}
+              {availableTickets === 0 && (
+                <span className="text-red-600 font-semibold">Sold Out</span>
+              )}
+              {availableTickets > 20 && (
+                <span className="text-green-600 font-medium">✨ Book now!</span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Subscription Status */}
         {!subscriptionLoading && eventPricing && (

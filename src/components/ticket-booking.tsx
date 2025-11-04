@@ -491,7 +491,7 @@ export function TicketBooking({ event }: TicketBookingProps) {
                     <div className="flex items-center">
                       <Crown className="h-5 w-5 text-yellow-600 mr-2" />
                       <div>
-                        <h3 className="text-lg font-semibold text-yellow-800">Free Ticket Already Used</h3>
+                        <h3 className="text-lg font-semibold text-yellow-800">You have already availed the offer</h3>
                         <p className="text-yellow-700">
                           You&apos;ve already used your free ticket for this event. All tickets will be charged at regular price.
                         </p>
