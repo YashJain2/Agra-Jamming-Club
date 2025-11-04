@@ -5,53 +5,56 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 text-gray-800 py-12 sm:py-16 md:py-24 overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Image */}
-        <div className="absolute inset-0 z-0 banner-container">
+        <div className="absolute inset-0 z-0">
           <img
             src="/home-banner.jpg"
             alt="Agra Jamming Club"
-            className="textured-banner w-full h-full object-cover opacity-30 sm:opacity-25 md:opacity-20"
+            className="textured-banner w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-100/90 via-purple-100/90 to-indigo-100/90 z-3"></div>
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 z-1"></div>
         </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
+        
+        {/* Content Overlay */}
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight drop-shadow-2xl">
             What is Agra Jamming Club
           </h1>
-          <div className="space-y-6 text-lg md:text-xl text-gray-700 leading-relaxed">
-            <p className="font-medium">
+          <div className="space-y-4 sm:space-y-6 text-base sm:text-lg md:text-xl text-white/95 leading-relaxed drop-shadow-lg">
+            <p className="font-medium text-white drop-shadow-md">
               In a city known for its monuments, a new kind of heritage is being built — one of music, connection, and community.
             </p>
-            <p>
+            <p className="text-white/95 drop-shadow-md">
               Agra Jamming Club is a space where music lovers, dreamers, and everyday people come together to sing, unwind, and simply be.
             </p>
-            <p className="italic text-gray-600">
+            <p className="italic text-white/90 drop-shadow-md">
               It&apos;s not a stage or a competition — it&apos;s a shared heartbeat.
             </p>
-            <p>
+            <p className="text-white/95 drop-shadow-md">
               Here, strangers turn into friends, and voices blend into something far bigger than any one song.
             </p>
-            <p>
+            <p className="text-white/95 drop-shadow-md">
               No spotlight. No judgment. Just pure, honest music — and the joy of belonging.
             </p>
-            <div className="pt-4 flex items-center justify-center">
-              <span className="text-2xl mr-2">✨</span>
-              <p className="text-2xl font-semibold text-pink-600">
+            <div className="pt-4 sm:pt-6 flex items-center justify-center">
+              <span className="text-2xl sm:text-3xl mr-2">✨</span>
+              <p className="text-xl sm:text-2xl font-semibold text-pink-200 drop-shadow-lg">
                 Where music finds its people.
               </p>
             </div>
           </div>
-          <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               href="/events" 
-              className="bg-pink-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-pink-600 transition-colors shadow-lg"
+              className="bg-pink-500 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-pink-600 transition-colors shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
             >
               View Upcoming Events
             </Link>
             <Link 
               href="/subscriptions" 
-              className="border-2 border-pink-500 text-pink-600 px-8 py-3 rounded-lg font-semibold hover:bg-pink-500 hover:text-white transition-colors"
+              className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-pink-600 transition-colors shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
             >
               Join the Tribe
             </Link>
