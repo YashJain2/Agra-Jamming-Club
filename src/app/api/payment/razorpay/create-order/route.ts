@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
     const { eventId, quantity, specialRequests, guestName, guestEmail, guestPhone } = validatedData;
 
     // Determine if this is a guest checkout or authenticated user
-    const isGuestCheckout = !session;
+    // Guest checkout if: no session OR guest details are provided (even if logged in)
+    const isGuestCheckout = !session || (guestName && guestEmail && guestPhone);
     
     // For guest checkout, require all guest details to be provided
     if (isGuestCheckout) {
