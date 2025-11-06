@@ -178,23 +178,63 @@ export default function RazorpayPayment({
         theme: orderData.data.theme,
         handler: async function (response: any) {
           try {
-            // Verify payment
-            const verifyResponse = await fetch('/api/payment/razorpay/verify', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                orderId: response.razorpay_order_id,
-                paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
-                orderData: orderData.data.orderData,
-              }),
+            console.log('💰 Payment successful, verifying...', {
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
             });
 
-            const verifyData = await verifyResponse.json();
+            // Verify payment with retry logic
+            let verifyData;
+            let verifyResponse;
+            let retries = 3;
+            let lastError;
+
+            while (retries > 0) {
+              try {
+                verifyResponse = await fetch('/api/payment/razorpay/verify', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    orderId: response.razorpay_order_id,
+                    paymentId: response.razorpay_payment_id,
+                    signature: response.razorpay_signature,
+                    orderData: orderData.data.orderData,
+                  }),
+                });
+
+                // Check if response is OK before parsing
+                if (!verifyResponse.ok) {
+                  const errorText = await verifyResponse.text();
+                  console.error('❌ Verification failed:', verifyResponse.status, errorText);
+                  lastError = `Server error: ${verifyResponse.status}`;
+                  retries--;
+                  if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                    continue;
+                  }
+                  throw new Error(lastError);
+                }
+
+                verifyData = await verifyResponse.json();
+                break; // Success, exit retry loop
+              } catch (error) {
+                console.error(`❌ Verification attempt failed (${4 - retries}/3):`, error);
+                lastError = error;
+                retries--;
+                if (retries > 0) {
+                  await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                }
+              }
+            }
+
+            if (!verifyData) {
+              throw new Error(lastError || 'Payment verification failed after retries');
+            }
 
             if (verifyData.success) {
+              console.log('✅ Payment verified successfully');
               onPaymentSuccess?.(verifyData.data);
               
               // Redirect to success page for guest checkout
@@ -216,11 +256,24 @@ export default function RazorpayPayment({
                 }, 2000);
               }
             } else {
+              console.error('❌ Verification returned error:', verifyData.error);
               onPaymentError?.(verifyData.error || 'Payment verification failed');
+              // Store payment details for manual recovery
+              console.error('Payment details for manual recovery:', {
+                orderId: response.razorpay_order_id,
+                paymentId: response.razorpay_payment_id,
+                orderData: orderData.data.orderData,
+              });
             }
           } catch (error) {
-            console.error('Payment verification error:', error);
-            onPaymentError?.('Payment verification failed');
+            console.error('❌ Payment verification error:', error);
+            onPaymentError?.('Payment verification failed. Please contact support with payment ID: ' + response.razorpay_payment_id);
+            // Store payment details for manual recovery
+            console.error('Payment details for manual recovery:', {
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              orderData: orderData.data.orderData,
+            });
           }
         },
         prefill: {

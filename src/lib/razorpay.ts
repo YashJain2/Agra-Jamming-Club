@@ -45,21 +45,32 @@ export const validatePayment = async (paymentId: string, orderId: string, signat
 };
 
 // Create Razorpay order using REST API
-export const createRazorpayOrder = async (amount: number, currency: string = 'INR', receipt?: string) => {
+export const createRazorpayOrder = async (
+  amount: number, 
+  currency: string = 'INR', 
+  receipt?: string,
+  notes?: Record<string, string>
+) => {
   try {
     console.log('Creating Razorpay order with:', {
       amount: amount * 100,
       currency,
       receipt: receipt || `receipt_${Date.now()}`,
+      notes,
       keyId: razorpayConfig.key_id,
     });
 
-    const options = {
+    const options: any = {
       amount: amount * 100, // Razorpay expects amount in paise
       currency,
       receipt: receipt || `receipt_${Date.now()}`,
       payment_capture: 1, // Auto capture payment
     };
+
+    // Add notes if provided
+    if (notes) {
+      options.notes = notes;
+    }
 
     // Use REST API instead of SDK
     const response = await fetch('https://api.razorpay.com/v1/orders', {

@@ -185,7 +185,16 @@ export async function POST(request: NextRequest) {
     const order = await createRazorpayOrder(
       totalAmount,
       'INR',
-      receipt
+      receipt,
+      {
+        eventId,
+        quantity: quantity.toString(),
+        guestEmail: guestEmail || '',
+        guestName: guestName || '',
+        guestPhone: guestPhone || '',
+        userId: session?.user.id || '',
+        isGuestCheckout: (isGuestCheckout ?? false).toString(),
+      }
     );
 
     // Store order details temporarily (you might want to store this in a separate table)
