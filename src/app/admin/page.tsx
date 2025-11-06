@@ -119,10 +119,14 @@ export default function AdminDashboard() {
     return endDate > now; // Only count if not expired
   });
 
+  // Calculate revenue only from ACTIVE subscriptions and tickets sold
+  const activeSubscriptionRevenue = activeSubscriptions.reduce((sum, s) => sum + s.price, 0);
+  const ticketsRevenue = tickets.reduce((sum, t) => sum + t.totalPrice, 0);
+
   const stats = {
     totalEvents: events.length,
     activeSubscriptions: activeSubscriptions.length,
-    totalRevenue: subscriptions.reduce((sum, s) => sum + s.price, 0) + tickets.reduce((sum, t) => sum + t.totalPrice, 0),
+    totalRevenue: activeSubscriptionRevenue + ticketsRevenue,
     ticketsSold: tickets.reduce((sum, t) => sum + t.quantity, 0)
   }
 
@@ -492,7 +496,7 @@ export default function AdminDashboard() {
             
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">All Subscriptions</h3>
+                <h3 className="text-lg font-medium text-gray-900">Active Subscriptions</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -508,47 +512,55 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {subscriptions.map((subscription) => {
-                      const daysLeft = Math.ceil((new Date(subscription.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                      const isExpiringSoon = daysLeft <= 7 && daysLeft > 0;
-                      const isExpired = daysLeft <= 0;
-                      
-                      return (
-                        <tr key={subscription.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{subscription.user.name}</div>
-                              <div className="text-sm text-gray-500">{subscription.user.email}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{subscription.plan.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              subscription.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
-                              subscription.status === 'EXPIRED' ? 'bg-red-100 text-red-800' :
-                              subscription.status === 'CANCELLED' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {subscription.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(subscription.startDate).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(subscription.endDate).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`text-sm font-medium ${
-                              isExpired ? 'text-red-600' : 
-                              isExpiringSoon ? 'text-yellow-600' : 'text-green-600'
-                            }`}>
-                              {isExpired ? 'Expired' : `${daysLeft} days`}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{subscription.price}</td>
-                        </tr>
-                      );
-                    })}
+                    {activeSubscriptions.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                          No active subscriptions found
+                        </td>
+                      </tr>
+                    ) : (
+                      activeSubscriptions.map((subscription) => {
+                        const daysLeft = Math.ceil((new Date(subscription.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                        const isExpiringSoon = daysLeft <= 7 && daysLeft > 0;
+                        const isExpired = daysLeft <= 0;
+                        
+                        return (
+                          <tr key={subscription.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{subscription.user.name}</div>
+                                <div className="text-sm text-gray-500">{subscription.user.email}</div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{subscription.plan.name}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                subscription.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
+                                subscription.status === 'EXPIRED' ? 'bg-red-100 text-red-800' :
+                                subscription.status === 'CANCELLED' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {subscription.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(subscription.startDate).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(subscription.endDate).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`text-sm font-medium ${
+                                isExpired ? 'text-red-600' : 
+                                isExpiringSoon ? 'text-yellow-600' : 'text-green-600'
+                              }`}>
+                                {isExpired ? 'Expired' : `${daysLeft} days`}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{subscription.price}</td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -559,7 +571,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Subscription Summary</h3>
-                  <p className="text-sm text-gray-500">Total subscriptions: {subscriptions.length}</p>
+                  <p className="text-sm text-gray-500">Active subscriptions: {activeSubscriptions.length}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">
