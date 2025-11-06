@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { verifyPaymentSignature } from '@/lib/razorpay';
 import { sendEmail, emailTemplates } from '@/lib/email';
+import { encryptPaymentData } from '@/lib/encryption';
 import { z } from 'zod';
 import QRCode from 'qrcode';
 
@@ -53,6 +54,63 @@ export async function POST(request: NextRequest) {
         { error: 'Direct Razorpay callbacks not supported. Please use the frontend payment flow.' },
         { status: 400 }
       );
+    }
+
+    // Check if payment already exists (idempotency check)
+    console.log('🔍 Checking for existing payment...');
+    const existingPayment = await prisma.payment.findFirst({
+      where: {
+        OR: [
+          { gatewayTxnId: paymentId },
+          { gatewayOrderId: orderId }
+        ]
+      },
+      include: {
+        ticket: {
+          include: {
+            event: true,
+            user: true
+          }
+        }
+      }
+    });
+
+    if (existingPayment) {
+      console.log('⚠️ Payment already exists:', existingPayment.id);
+      console.log('✅ Returning existing ticket data');
+      
+      // Return existing ticket data
+      if (existingPayment.ticket) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            id: existingPayment.ticket.id,
+            userId: existingPayment.ticket.userId,
+            eventId: existingPayment.ticket.eventId,
+            quantity: existingPayment.ticket.quantity,
+            totalPrice: existingPayment.ticket.totalPrice,
+            status: existingPayment.ticket.status,
+            qrCode: existingPayment.ticket.qrCode,
+            event: {
+              id: existingPayment.ticket.event.id,
+              title: existingPayment.ticket.event.title,
+              date: existingPayment.ticket.event.date,
+              time: existingPayment.ticket.event.time,
+              venue: existingPayment.ticket.event.venue,
+              price: existingPayment.ticket.event.price,
+            },
+            user: existingPayment.ticket.user ? {
+              id: existingPayment.ticket.user.id,
+              name: existingPayment.ticket.user.name,
+              email: existingPayment.ticket.user.email,
+              phone: existingPayment.ticket.user.phone,
+            } : null,
+          },
+          message: 'Payment already processed. Ticket retrieved.',
+          paymentId: paymentId,
+          orderId: orderId,
+        }, { status: 200 });
+      }
     }
 
     // Verify payment signature
@@ -124,8 +182,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create ticket using Prisma ORM (minimal approach)
-    console.log('🎫 Creating ticket with Prisma ORM...');
+    // Use a transaction to ensure atomicity
+    console.log('🎫 Creating ticket and payment in transaction...');
     
     console.log('🔍 Ticket data:', {
       userId: orderData.userId,
@@ -176,18 +234,67 @@ export async function POST(request: NextRequest) {
         console.log('✅ Created new guest user:', ticketUserId);
       }
     }
-    
-    const ticket = await prisma.ticket.create({
-      data: {
-        userId: ticketUserId, // Use the determined user ID
-        eventId: orderData.eventId,
-        quantity: orderData.quantity,
-        totalPrice: orderData.totalAmount,
-        status: 'CONFIRMED',
-      },
+
+    // Ensure ticketUserId is set before transaction
+    if (!ticketUserId) {
+      console.error('❌ No user ID available for ticket');
+      return NextResponse.json(
+        { error: 'Unable to determine user for ticket creation' },
+        { status: 500 }
+      );
+    }
+
+    // Use transaction to create ticket and payment atomically
+    const result = await prisma.$transaction(async (tx) => {
+      // Create ticket
+      const ticket = await tx.ticket.create({
+        data: {
+          userId: ticketUserId!,
+          eventId: orderData.eventId,
+          quantity: orderData.quantity,
+          totalPrice: orderData.totalAmount,
+          status: 'CONFIRMED',
+        },
+      });
+
+      console.log('✅ Ticket created successfully:', ticket.id);
+
+      // Create payment record
+      console.log('💳 Creating payment record...');
+      const encryptedGatewayResponse = encryptPaymentData({ signature, orderId, paymentId });
+      const payment = await tx.payment.create({
+        data: {
+          userId: ticketUserId!,
+          ticketId: ticket.id,
+          amount: orderData.totalAmount,
+          currency: 'INR',
+          status: 'COMPLETED',
+          paymentMethod: 'RAZORPAY',
+          gateway: 'RAZORPAY',
+          gatewayOrderId: orderId,
+          gatewayTxnId: paymentId,
+          gatewayResponse: encryptedGatewayResponse,
+        },
+      });
+      console.log('✅ Payment record created:', payment.id);
+
+      // Update event sold tickets count
+      console.log('🔄 Updating event sold tickets count...');
+      await tx.event.update({
+        where: { id: orderData.eventId },
+        data: { 
+          soldTickets: {
+            increment: orderData.quantity
+          }
+        },
+      });
+      console.log('✅ Event sold tickets updated');
+
+      return { ticket, payment };
     });
 
-    console.log('✅ Ticket created successfully:', ticket.id);
+    const ticket = result.ticket;
+    const payment = result.payment;
 
     // Get event and user details separately
     const eventDetails = await prisma.event.findUnique({
@@ -202,16 +309,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (!ticketUserId) {
-      console.error('❌ No user ID available for ticket');
-      return NextResponse.json(
-        { error: 'Unable to determine user for ticket creation' },
-        { status: 500 }
-      );
-    }
-
     const userDetails = await prisma.user.findUnique({
-      where: { id: ticketUserId },
+      where: { id: ticketUserId! },
       select: {
         id: true,
         name: true,
@@ -272,6 +371,7 @@ export async function POST(request: NextRequest) {
       guestEmail: orderData.isGuestCheckout ? orderData.guestEmail : null,
       guestPhone: orderData.isGuestCheckout ? orderData.guestPhone : null,
     };
+
 
     // Log the payment success
     console.log('📝 Logging payment success...');
