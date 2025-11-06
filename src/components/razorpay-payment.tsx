@@ -187,7 +187,7 @@ export default function RazorpayPayment({
             let verifyData;
             let verifyResponse;
             let retries = 3;
-            let lastError;
+            let lastError: string | Error | undefined;
 
             while (retries > 0) {
               try {
@@ -221,7 +221,7 @@ export default function RazorpayPayment({
                 break; // Success, exit retry loop
               } catch (error) {
                 console.error(`❌ Verification attempt failed (${4 - retries}/3):`, error);
-                lastError = error;
+                lastError = error instanceof Error ? error.message : String(error);
                 retries--;
                 if (retries > 0) {
                   await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
@@ -230,7 +230,8 @@ export default function RazorpayPayment({
             }
 
             if (!verifyData) {
-              throw new Error(lastError || 'Payment verification failed after retries');
+              const errorMessage = typeof lastError === 'string' ? lastError : lastError?.message || 'Payment verification failed after retries';
+              throw new Error(errorMessage);
             }
 
             if (verifyData.success) {
