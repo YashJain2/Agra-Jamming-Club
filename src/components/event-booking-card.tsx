@@ -413,6 +413,27 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
                 />
               )}
             </div>
+          ) : availableTickets === 0 ? (
+            // Sold out - show disabled booking
+            <div className="space-y-4">
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                <div className="flex items-center justify-center">
+                  <XCircle className="h-6 w-6 text-red-600 mr-2" />
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-red-800">SOLD OUT</h3>
+                    <p className="text-sm text-red-600 mt-1">
+                      All tickets for this event have been sold
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <button
+                disabled={true}
+                className="w-full py-3 px-4 rounded-md font-medium bg-red-500 text-white cursor-not-allowed"
+              >
+                SOLD OUT
+              </button>
+            </div>
           ) : (
             // Paid ticket booking with Razorpay
             <RazorpayPayment

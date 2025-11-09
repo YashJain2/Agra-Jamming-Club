@@ -314,40 +314,48 @@ export default function RazorpayPayment({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Number of Tickets
         </label>
-        <select
-          value={quantity}
-          onChange={(e) => setQuantity(parseInt(e.target.value))}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-          disabled={isLoading}
-        >
-          {Array.from({ length: Math.min(10, availableTickets) }, (_, i) => (
-            <option key={i + 1} value={i + 1}>
-              {i + 1} ticket{i + 1 > 1 ? 's' : ''}
-            </option>
-          ))}
-        </select>
-        <p className="text-sm text-gray-500 mt-1">
-          {availableTickets} tickets available
+        {availableTickets === 0 ? (
+          <div className="w-full p-2 border-2 border-red-300 rounded-md bg-red-50 text-red-700 font-semibold text-center">
+            SOLD OUT
+          </div>
+        ) : (
+          <select
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value))}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            disabled={isLoading || availableTickets === 0}
+          >
+            {Array.from({ length: Math.min(10, availableTickets) }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {i + 1} ticket{i + 1 > 1 ? 's' : ''}
+              </option>
+            ))}
+          </select>
+        )}
+        <p className={`text-sm mt-1 ${availableTickets === 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+          {availableTickets === 0 ? 'This event is sold out' : `${availableTickets} tickets available`}
         </p>
       </div>
 
       {/* Special Requests */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Special Requests (Optional)
-        </label>
-        <textarea
-          value={specialRequests}
-          onChange={(e) => setSpecialRequests(e.target.value)}
-          placeholder="Any special requirements or requests..."
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-          rows={3}
-          disabled={isLoading}
-        />
-      </div>
+      {availableTickets > 0 && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Special Requests (Optional)
+          </label>
+          <textarea
+            value={specialRequests}
+            onChange={(e) => setSpecialRequests(e.target.value)}
+            placeholder="Any special requirements or requests..."
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            rows={3}
+            disabled={isLoading || availableTickets === 0}
+          />
+        </div>
+      )}
 
       {/* Guest Checkout Toggle */}
-      {!session && (
+      {!session && availableTickets > 0 && (
         <div className="mb-4">
           <label className="flex items-center">
             <input
@@ -355,7 +363,7 @@ export default function RazorpayPayment({
               checked={isGuestCheckout}
               onChange={(e) => setIsGuestCheckout(e.target.checked)}
               className="mr-2"
-              disabled={isLoading}
+              disabled={isLoading || availableTickets === 0}
             />
             <span className="text-sm text-gray-700">Checkout as guest</span>
           </label>
@@ -363,7 +371,7 @@ export default function RazorpayPayment({
       )}
 
       {/* Guest Details */}
-      {isGuestCheckout && (
+      {isGuestCheckout && availableTickets > 0 && (
         <div className="mb-4 space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -408,6 +416,7 @@ export default function RazorpayPayment({
       )}
 
       {/* Price Summary */}
+      {availableTickets > 0 && (
       <div className="mb-4 p-3 bg-gray-50 rounded-md">
         {canGetFreeTicket && quantity > 1 ? (
           <div className="space-y-1">
@@ -440,20 +449,32 @@ export default function RazorpayPayment({
           </div>
         )}
       </div>
+      )}
 
       {/* Payment Button */}
-      <button
-        onClick={handlePayment}
-        disabled={isLoading || availableTickets < quantity || totalAmount < 1}
-        className="w-full bg-pink-500 text-white py-3 px-4 rounded-md font-medium hover:bg-pink-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-      >
-        {isLoading ? 'Processing...' : totalAmount < 1 ? 'Free with Subscription' : `Pay ₹${totalAmount}`}
-      </button>
+      {availableTickets === 0 ? (
+        <button
+          disabled={true}
+          className="w-full bg-red-500 text-white py-3 px-4 rounded-md font-medium cursor-not-allowed transition-colors"
+        >
+          SOLD OUT
+        </button>
+      ) : (
+        <>
+          <button
+            onClick={handlePayment}
+            disabled={isLoading || availableTickets < quantity || totalAmount < 1}
+            className="w-full bg-pink-500 text-white py-3 px-4 rounded-md font-medium hover:bg-pink-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            {isLoading ? 'Processing...' : totalAmount < 1 ? 'Free with Subscription' : `Pay ₹${totalAmount}`}
+          </button>
 
-      {availableTickets < quantity && (
-        <p className="text-red-500 text-sm mt-2">
-          Not enough tickets available
-        </p>
+          {availableTickets < quantity && availableTickets > 0 && (
+            <p className="text-red-500 text-sm mt-2">
+              Not enough tickets available. Only {availableTickets} ticket{availableTickets > 1 ? 's' : ''} remaining.
+            </p>
+          )}
+        </>
       )}
     </div>
   );

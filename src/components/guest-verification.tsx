@@ -80,6 +80,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
       filtered = filtered.filter(ticket =>
         ticket.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (ticket.user.phone && ticket.user.phone.toLowerCase().includes(searchTerm.toLowerCase())) ||
         ticket.event.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -150,7 +151,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search by name, email, or event..."
+                  placeholder="Search by name, email, phone, or event..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"

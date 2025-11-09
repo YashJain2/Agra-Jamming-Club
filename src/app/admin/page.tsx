@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react'
-import { Calendar, Users, DollarSign, Ticket, Plus, Eye, Edit, CheckCircle, XCircle, Settings, BarChart3, Shield, QrCode } from 'lucide-react'
+import { Calendar, Users, DollarSign, Ticket, Plus, Eye, Edit, CheckCircle, XCircle, Settings, BarChart3, Shield, QrCode, Search } from 'lucide-react'
 import Image from 'next/image'
 import { CreateEventForm } from '@/components/create-event-form'
 import { GuestVerification } from '@/components/guest-verification'
@@ -86,6 +86,7 @@ export default function AdminDashboard() {
   const [showGuestList, setShowGuestList] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [eventGuests, setEventGuests] = useState<any[]>([])
+  const [verificationSearchTerm, setVerificationSearchTerm] = useState('')
 
   const user = session?.user;
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
@@ -607,8 +608,22 @@ export default function AdminDashboard() {
             
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">All Tickets</h3>
-                <p className="text-sm text-gray-500">Manage ticket verification for all events</p>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">All Tickets</h3>
+                    <p className="text-sm text-gray-500">Manage ticket verification for all events</p>
+                  </div>
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by name or email..."
+                      value={verificationSearchTerm}
+                      onChange={(e) => setVerificationSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -633,7 +648,18 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
                     ) : (
-                      tickets.map((ticket) => (
+                      tickets
+                        .filter((ticket) => {
+                          if (!verificationSearchTerm) return true;
+                          const searchLower = verificationSearchTerm.toLowerCase();
+                          return (
+                            ticket.user?.name?.toLowerCase().includes(searchLower) ||
+                            ticket.user?.email?.toLowerCase().includes(searchLower) ||
+                            ticket.user?.phone?.toLowerCase().includes(searchLower) ||
+                            ticket.event?.title?.toLowerCase().includes(searchLower)
+                          );
+                        })
+                        .map((ticket) => (
                         <tr key={ticket.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
