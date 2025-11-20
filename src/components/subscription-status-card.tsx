@@ -178,8 +178,8 @@ export function SubscriptionStatusCard({ className = '', showBenefits = true }: 
         </div>
       )}
 
-      {/* Buy/Renew Subscription Button - Always show for ₹299 plan */}
-      {subscription && subscription.plan.price === 299 && (
+      {/* Buy/Renew Subscription Button - Show for all active subscriptions */}
+      {hasActiveSubscription && subscription && (
         <div className="border-t pt-4 mt-4">
           <a
             href="/subscriptions/checkout"
