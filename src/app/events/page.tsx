@@ -60,13 +60,15 @@ export default function EventsPage() {
           body: JSON.stringify({
             eventId,
             quantity,
+            isFreeBooking: true, // Flag to indicate this is a free booking
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
           alert(data.message || 'Free ticket booked successfully!');
-          fetchEvents();
+          // Refresh events to update soldTickets count
+          await fetchEvents();
         } else {
           const error = await response.json();
           alert(error.error || 'Failed to book free ticket');

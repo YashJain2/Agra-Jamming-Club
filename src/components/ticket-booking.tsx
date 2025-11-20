@@ -192,6 +192,9 @@ export function TicketBooking({ event }: TicketBookingProps) {
         if (response.ok) {
           const data = await response.json();
           alert('Ticket booked successfully! Your subscription covers this event.');
+          
+          // Refresh the page to update event data and subscription status
+          // This ensures soldTickets count and free ticket availability are updated
           window.location.reload();
         } else {
           const errorData = await response.json();

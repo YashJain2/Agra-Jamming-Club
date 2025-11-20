@@ -47,7 +47,7 @@ interface EventPricing {
 
 interface EventBookingCardProps {
   event: Event;
-  onBookTicket: (eventId: string, quantity: number, isFreeAccess: boolean) => void;
+  onBookTicket: (eventId: string, quantity: number, isFreeAccess: boolean) => Promise<void>;
   className?: string;
 }
 
@@ -60,7 +60,7 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
 
   useEffect(() => {
     fetchSubscriptionStatus();
-  }, []);
+  }, [event.id, event.soldTickets]);
 
   const fetchSubscriptionStatus = async () => {
     try {
@@ -105,6 +105,9 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
     try {
       const isFreeAccess = eventPricing?.isFree || false;
       await onBookTicket(event.id, quantity, isFreeAccess);
+      // Refresh subscription status and event pricing after booking
+      // This updates the free ticket availability status
+      await fetchSubscriptionStatus();
     } catch (error) {
       console.error('Error booking ticket:', error);
     } finally {
