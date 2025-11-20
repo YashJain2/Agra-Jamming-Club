@@ -53,11 +53,70 @@ export async function POST(request: NextRequest) {
     // Try to find order data from notes or metadata
     // Note: This is a fallback - ideally orderData should be stored when order is created
     const orderNotes = order.notes || {};
-    const eventId = orderNotes.eventId;
+    let eventId = orderNotes.eventId;
+    
+    // If eventId not in notes, try to find it from existing orders in database
+    // by matching order ID
+    if (!eventId) {
+      console.log('⚠️ No eventId in order notes, checking database for existing order...');
+      
+      // Try to find a payment with this order ID to get event context
+      const existingOrderPayment = await prisma.payment.findFirst({
+        where: {
+          gatewayOrderId: order.id,
+        },
+        include: {
+          ticket: {
+            select: {
+              eventId: true,
+            },
+          },
+        },
+      });
+      
+      if (existingOrderPayment?.ticket?.eventId) {
+        eventId = existingOrderPayment.ticket.eventId;
+        console.log('✅ Found eventId from existing payment:', eventId);
+      } else {
+        // Last resort: try to find event by matching amount and recent date
+        // This is not ideal but better than failing completely
+        const amountInRupees = payment.amount / 100;
+        const recentEvents = await prisma.event.findMany({
+          where: {
+            isActive: true,
+            status: 'PUBLISHED',
+            price: {
+              lte: amountInRupees, // Event price should be <= payment amount
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 5,
+        });
+        
+        // Try to match by calculating quantity
+        for (const event of recentEvents) {
+          const possibleQuantity = Math.round(amountInRupees / event.price);
+          if (possibleQuantity > 0 && possibleQuantity <= 10) {
+            eventId = event.id;
+            console.log(`✅ Matched event by amount: ${event.title} (${possibleQuantity} tickets)`);
+            break;
+          }
+        }
+      }
+    }
     
     if (!eventId) {
-      console.log('⚠️ No eventId found in order notes, cannot process webhook');
-      return NextResponse.json({ received: true, message: 'No eventId found' });
+      console.error('❌ No eventId found, cannot process webhook. Order ID:', order.id);
+      console.error('   Payment ID:', payment.id);
+      console.error('   Amount:', payment.amount / 100);
+      console.error('   Order Notes:', JSON.stringify(orderNotes, null, 2));
+      // Return 500 to trigger Razorpay retry (they will retry failed webhooks)
+      return NextResponse.json(
+        { received: false, error: 'No eventId found' },
+        { status: 500 }
+      );
     }
 
     // Find event
@@ -71,13 +130,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract user details from payment notes or customer
-    const customerEmail = payment.email || orderNotes.guestEmail;
-    const customerName = payment.notes?.name || orderNotes.guestName || 'Guest';
-    const customerPhone = payment.contact || orderNotes.guestPhone || '';
+    let customerEmail = payment.email || orderNotes.guestEmail || payment.notes?.email;
+    const customerName = payment.notes?.name || orderNotes.guestName || payment.customer_details?.name || 'Guest';
+    let customerPhone = payment.contact || orderNotes.guestPhone || payment.customer_details?.contact || '';
+
+    // If email still not found, try to extract from payment entity
+    if (!customerEmail && payment.entity) {
+      customerEmail = payment.entity.email;
+      customerPhone = payment.entity.contact || customerPhone;
+    }
 
     if (!customerEmail) {
-      console.log('⚠️ No customer email found, cannot create user');
-      return NextResponse.json({ received: true, message: 'No customer email found' });
+      console.error('❌ No customer email found, cannot create user');
+      console.error('   Payment entity:', JSON.stringify(payment, null, 2));
+      console.error('   Order notes:', JSON.stringify(orderNotes, null, 2));
+      // Return 500 to trigger retry - maybe email will be available in retry
+      return NextResponse.json(
+        { received: false, error: 'No customer email found' },
+        { status: 500 }
+      );
     }
 
     // Find or create user
@@ -174,11 +245,33 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Webhook processing error:', error);
-    // Always return 200 to Razorpay to prevent retries
-    return NextResponse.json(
-      { received: true, error: (error as Error).message },
-      { status: 200 }
-    );
+    console.error('   Error details:', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+    });
+    
+    // Return 500 for retryable errors (database issues, network issues)
+    // Return 200 for non-retryable errors (validation errors, data issues)
+    const errorMessage = (error as Error).message.toLowerCase();
+    const isRetryable = 
+      errorMessage.includes('timeout') ||
+      errorMessage.includes('connection') ||
+      errorMessage.includes('database') ||
+      errorMessage.includes('network');
+    
+    if (isRetryable) {
+      console.log('   Returning 500 for retryable error');
+      return NextResponse.json(
+        { received: false, error: (error as Error).message },
+        { status: 500 }
+      );
+    } else {
+      console.log('   Returning 200 for non-retryable error');
+      return NextResponse.json(
+        { received: true, error: (error as Error).message },
+        { status: 200 }
+      );
+    }
   }
 }
 
