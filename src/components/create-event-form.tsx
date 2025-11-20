@@ -36,7 +36,15 @@ export function CreateEventForm({ onClose, onSuccess, editEvent }: CreateEventFo
     description: editEvent?.description || '',
     date: editEvent?.date ? (() => {
       try {
-        return new Date(editEvent.date).toISOString().slice(0, 16);
+        // Parse the date from database (UTC) and convert to local datetime-local format
+        const dbDate = new Date(editEvent.date);
+        // Get local date components to preserve the date as stored
+        const year = dbDate.getUTCFullYear();
+        const month = String(dbDate.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(dbDate.getUTCDate()).padStart(2, '0');
+        const hours = String(dbDate.getUTCHours()).padStart(2, '0');
+        const minutes = String(dbDate.getUTCMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
       } catch (error) {
         console.error('Date initialization error:', error);
         return '';
@@ -100,9 +108,24 @@ export function CreateEventForm({ onClose, onSuccess, editEvent }: CreateEventFo
       const method = editEvent ? 'PUT' : 'POST';
       
       // Format the data properly for the API
+      // datetime-local input gives us a string like "2025-11-09T18:00"
+      // We need to preserve the date and time as entered, treating it as a date-only value
       let formattedDate;
       try {
-        formattedDate = formData.date ? new Date(formData.date).toISOString() : new Date().toISOString();
+        if (formData.date) {
+          // Parse the datetime-local string (format: YYYY-MM-DDTHH:mm)
+          // Extract date and time components directly from the string
+          const [datePart, timePart] = formData.date.split('T');
+          const [year, month, day] = datePart.split('-').map(Number);
+          const [hours, minutes] = timePart ? timePart.split(':').map(Number) : [0, 0];
+          
+          // Create a UTC date with the exact date/time values entered
+          // This preserves the date regardless of user's timezone
+          const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
+          formattedDate = utcDate.toISOString();
+        } else {
+          formattedDate = new Date().toISOString();
+        }
       } catch (error) {
         console.error('Date parsing error:', error);
         alert('Invalid date format');

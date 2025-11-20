@@ -10,10 +10,12 @@ const createEventSchema = z.object({
   description: z.string().optional(),
   date: z.string().transform((val) => {
     // Convert various date formats to proper ISO string
+    // The date comes as ISO string from frontend, so parse it
     const date = new Date(val);
     if (isNaN(date.getTime())) {
       throw new Error('Invalid date format');
     }
+    // Return ISO string - the date is already in UTC from frontend
     return date.toISOString();
   }),
   time: z.string().min(1, 'Time is required'),
