@@ -170,10 +170,22 @@ export function SubscriptionStatusCard({ className = '', showBenefits = true }: 
       {!hasActiveSubscription && (
         <div className="border-t pt-4 mt-4">
           <a
-            href="/subscriptions"
+            href="/subscriptions/checkout"
             className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors text-center block"
           >
             Subscribe Now
+          </a>
+        </div>
+      )}
+
+      {/* Buy/Renew Subscription Button - Always show for ₹299 plan */}
+      {subscription && subscription.plan.price === 299 && (
+        <div className="border-t pt-4 mt-4">
+          <a
+            href="/subscriptions/checkout"
+            className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors text-center block"
+          >
+            {daysRemaining && daysRemaining > 0 ? 'Renew Subscription' : 'Buy Subscription'}
           </a>
         </div>
       )}
