@@ -148,14 +148,22 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
     <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>
       {/* Event Image */}
       <div className="h-48 bg-gray-200 relative">
-        <img
-          src={event.imageUrl || '/raahein-event.jpg'}
-          alt={event.title}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            e.currentTarget.src = `https://via.placeholder.com/400x300/6366f1/ffffff?text=${encodeURIComponent(event.title)}`;
-          }}
-        />
+        {event.imageUrl && event.imageUrl.includes('photos.google.com') ? (
+          <div className="w-full h-full bg-yellow-50 border-2 border-yellow-300 flex items-center justify-center p-4">
+            <p className="text-sm text-yellow-800 text-center">
+              ⚠️ Google Photos link detected. Please update with a direct image URL.
+            </p>
+          </div>
+        ) : (
+          <img
+            src={event.imageUrl || '/raahein-event.jpg'}
+            alt={event.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = `https://via.placeholder.com/400x300/6366f1/ffffff?text=${encodeURIComponent(event.title)}`;
+            }}
+          />
+        )}
         
         {/* Status Badge */}
         {isPastEvent ? (

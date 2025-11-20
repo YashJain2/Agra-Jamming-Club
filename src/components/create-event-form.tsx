@@ -387,18 +387,35 @@ export function CreateEventForm({ onClose, onSuccess, editEvent }: CreateEventFo
               value={formData.imageUrl}
               onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter image URL or paste base64 data"
+              placeholder="Enter direct image URL (e.g., https://example.com/image.jpg)"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              ⚠️ Google Photos sharing links don't work. Use a direct image URL from services like Imgur, Cloudinary, or upload to your own server.
+            </p>
             {formData.imageUrl && (
               <div className="mt-2">
-                <img 
-                  src={formData.imageUrl} 
-                  alt="Preview" 
-                  className="w-full h-32 object-cover rounded-md border"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+                {formData.imageUrl.includes('photos.google.com') ? (
+                  <div className="w-full h-32 bg-yellow-50 border-2 border-yellow-300 rounded-md flex items-center justify-center p-4">
+                    <p className="text-sm text-yellow-800 text-center">
+                      ⚠️ Google Photos sharing links cannot be used directly. Please use a direct image URL instead.
+                    </p>
+                  </div>
+                ) : (
+                  <img 
+                    src={formData.imageUrl} 
+                    alt="Preview" 
+                    className="w-full h-32 object-cover rounded-md border"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      img.style.display = 'none';
+                      // Show error message
+                      const errorDiv = document.createElement('div');
+                      errorDiv.className = 'w-full h-32 bg-red-50 border-2 border-red-300 rounded-md flex items-center justify-center p-4';
+                      errorDiv.innerHTML = '<p class="text-sm text-red-800 text-center">❌ Image failed to load. Please check the URL is correct and publicly accessible.</p>';
+                      img.parentNode?.appendChild(errorDiv);
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>
