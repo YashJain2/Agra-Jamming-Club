@@ -131,8 +131,8 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
-        <div className="flex justify-between items-center p-6 border-b">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex justify-between items-center p-6 border-b flex-shrink-0">
           <h2 className="text-2xl font-bold text-gray-900">Guest Verification</h2>
           <button
             onClick={onClose}
@@ -142,7 +142,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {/* Filters */}
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Filter Tickets</h3>
