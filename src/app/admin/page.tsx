@@ -255,30 +255,32 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 sm:py-8 gap-4">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
-                <Settings className="h-8 w-8 text-white" />
+              <div className="p-2 sm:p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
+                <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-gray-600 mt-1">Enterprise-level event and subscription management</p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p className="text-gray-600 mt-1 text-sm sm:text-base hidden sm:block">Enterprise-level event and subscription management</p>
               </div>
             </div>
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
               <button 
                 onClick={() => setShowCreateEvent(true)}
-                className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
               >
-                <Plus className="h-5 w-5 mr-2" />
-                New Event
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                <span className="hidden sm:inline">New Event</span>
+                <span className="sm:hidden">New</span>
               </button>
               <button 
                 onClick={() => setShowGuestVerification(true)}
-                className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
               >
-                <QrCode className="h-5 w-5 mr-2" />
-                Guest Verification
+                <QrCode className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                <span className="hidden sm:inline">Guest Verification</span>
+                <span className="sm:hidden">Verify</span>
               </button>
             </div>
           </div>
@@ -288,7 +290,7 @@ export default function AdminDashboard() {
       {/* Navigation Tabs */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
+          <nav className="flex space-x-2 sm:space-x-8 overflow-x-auto">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'events', label: 'Events', icon: Calendar },
@@ -299,14 +301,15 @@ export default function AdminDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                className={`flex items-center py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-purple-500 text-purple-600 bg-purple-50'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <tab.icon className="h-5 w-5 mr-2" />
-                {tab.label}
+                <tab.icon className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
               </button>
             ))}
           </nav>
@@ -426,11 +429,11 @@ export default function AdminDashboard() {
         {/* Events Tab */}
         {activeTab === 'events' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Event Management</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Event Management</h2>
               <button 
                 onClick={() => setShowCreateEvent(true)}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm sm:text-base w-full sm:w-auto justify-center"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create New Event
@@ -493,7 +496,7 @@ export default function AdminDashboard() {
         {/* Subscriptions Tab */}
         {activeTab === 'subscriptions' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Subscription Management</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Subscription Management</h2>
             
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
@@ -588,19 +591,19 @@ export default function AdminDashboard() {
         {/* Guest Verification Tab */}
         {activeTab === 'verification' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Guest Verification</h2>
-              <div className="flex space-x-4">
-                <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                  <span className="text-sm text-blue-600">Total Tickets: </span>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Guest Verification</h2>
+              <div className="flex flex-wrap gap-2 sm:gap-4">
+                <div className="bg-blue-50 px-3 sm:px-4 py-2 rounded-lg">
+                  <span className="text-xs sm:text-sm text-blue-600">Total: </span>
                   <span className="font-semibold text-blue-800">{tickets.length}</span>
                 </div>
-                <div className="bg-yellow-50 px-4 py-2 rounded-lg">
-                  <span className="text-sm text-yellow-600">Pending: </span>
+                <div className="bg-yellow-50 px-3 sm:px-4 py-2 rounded-lg">
+                  <span className="text-xs sm:text-sm text-yellow-600">Booked: </span>
                   <span className="font-semibold text-yellow-800">{tickets.filter(t => !t.isVerified).length}</span>
                 </div>
-                <div className="bg-green-50 px-4 py-2 rounded-lg">
-                  <span className="text-sm text-green-600">Verified: </span>
+                <div className="bg-green-50 px-3 sm:px-4 py-2 rounded-lg">
+                  <span className="text-xs sm:text-sm text-green-600">Verified: </span>
                   <span className="font-semibold text-green-800">{tickets.filter(t => t.isVerified).length}</span>
                 </div>
               </div>
@@ -613,14 +616,14 @@ export default function AdminDashboard() {
                     <h3 className="text-lg font-medium text-gray-900">All Tickets</h3>
                     <p className="text-sm text-gray-500">Manage ticket verification for all events</p>
                   </div>
-                  <div className="relative w-64">
+                  <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                       type="text"
                       placeholder="Search by name or email..."
                       value={verificationSearchTerm}
                       onChange={(e) => setVerificationSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
                     />
                   </div>
                 </div>
@@ -629,11 +632,11 @@ export default function AdminDashboard() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guest</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tickets</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guest</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tickets</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -661,58 +664,58 @@ export default function AdminDashboard() {
                         })
                         .map((ticket) => (
                         <tr key={ticket.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 sm:px-6 py-4">
                             <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
-                                <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                  <Users className="h-5 w-5 text-purple-600" />
+                              <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                                 </div>
                               </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
+                              <div className="ml-2 sm:ml-4 min-w-0">
+                                <div className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                                   {ticket.user?.name || 'Guest User'}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-xs sm:text-sm text-gray-500 truncate">
                                   {ticket.user?.email || 'No email'}
                                 </div>
                                 {ticket.user?.phone && (
-                                  <div className="text-xs text-gray-400">
+                                  <div className="text-xs text-gray-400 truncate">
                                     {ticket.user.phone}
                                   </div>
                                 )}
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
+                          <td className="px-3 sm:px-6 py-4">
+                            <div className="text-xs sm:text-sm font-medium text-gray-900">
                               {ticket.event?.title || 'Unknown Event'}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-xs sm:text-sm text-gray-500">
                               {ticket.event?.date ? new Date(ticket.event.date).toLocaleDateString() : 'No date'}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-xs sm:text-sm text-gray-500">
                               {ticket.event?.venue || 'No venue'}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
+                          <td className="px-3 sm:px-6 py-4">
+                            <div className="text-xs sm:text-sm text-gray-900">
                               {ticket.quantity} ticket(s)
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-xs sm:text-sm text-gray-500">
                               ₹{ticket.totalPrice || 0}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 sm:px-6 py-4">
                             <div className="flex items-center">
                               {ticket.isVerified ? (
                                 <div className="flex items-center text-green-600">
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  <span className="text-sm">Verified</span>
+                                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span className="text-xs sm:text-sm">Verified</span>
                                 </div>
                               ) : (
                                 <div className="flex items-center text-yellow-600">
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                  <span className="text-sm">Pending</span>
+                                  <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span className="text-xs sm:text-sm">Booked</span>
                                 </div>
                               )}
                             </div>
@@ -722,22 +725,22 @@ export default function AdminDashboard() {
                               </div>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex space-x-2">
+                          <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium">
+                            <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
                               {!ticket.isVerified ? (
                                 <button
                                   onClick={() => handleVerifyTicket(ticket.id, 'verify')}
-                                  className="text-green-600 hover:text-green-900 bg-green-100 px-3 py-1 rounded-md hover:bg-green-200 transition-colors flex items-center"
+                                  className="text-green-600 hover:text-green-900 bg-green-100 px-2 sm:px-3 py-1 rounded-md hover:bg-green-200 transition-colors flex items-center justify-center text-xs sm:text-sm"
                                 >
-                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                                   Verify
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => handleVerifyTicket(ticket.id, 'unverify')}
-                                  className="text-red-600 hover:text-red-900 bg-red-100 px-3 py-1 rounded-md hover:bg-red-200 transition-colors flex items-center"
+                                  className="text-red-600 hover:text-red-900 bg-red-100 px-2 sm:px-3 py-1 rounded-md hover:bg-red-200 transition-colors flex items-center justify-center text-xs sm:text-sm"
                                 >
-                                  <XCircle className="h-4 w-4 mr-1" />
+                                  <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                                   Unverify
                                 </button>
                               )}
@@ -940,7 +943,7 @@ export default function AdminDashboard() {
                   <div className="text-2xl font-bold text-yellow-600">
                     {eventGuests.filter(g => !g.isVerified).length}
                   </div>
-                  <div className="text-sm text-yellow-800">Pending</div>
+                  <div className="text-sm text-yellow-800">Booked</div>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">

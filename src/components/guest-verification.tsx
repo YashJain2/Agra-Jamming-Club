@@ -319,7 +319,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
                         ) : (
                           <div className="flex items-center text-yellow-600">
                             <XCircle className="h-4 w-4 mr-1" />
-                            <span className="text-sm">Pending</span>
+                            <span className="text-sm">Booked</span>
                           </div>
                         )}
                       </div>
@@ -378,7 +378,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
               <div className="text-2xl font-bold text-yellow-600">
                 {filteredTickets.filter(t => !t.isVerified).length}
               </div>
-              <div className="text-sm text-yellow-600">Pending</div>
+              <div className="text-sm text-yellow-600">Booked</div>
             </div>
           </div>
         </div>

@@ -141,7 +141,7 @@ export default function MyTicketsPage() {
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {ticket.status}
+                      {ticket.status === 'PENDING' ? 'Booked' : ticket.status}
                     </span>
                     <p className="text-sm text-gray-500 mt-1">₹{ticket.totalPrice}</p>
                   </div>

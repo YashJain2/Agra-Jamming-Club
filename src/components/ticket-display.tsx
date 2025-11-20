@@ -140,7 +140,7 @@ export default function TicketDisplay({ ticket }: TicketDisplayProps) {
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-yellow-100 text-yellow-800'
               }`}>
-                {ticket.status}
+                {ticket.status === 'PENDING' ? 'Booked' : ticket.status}
               </span>
             </div>
             <div>

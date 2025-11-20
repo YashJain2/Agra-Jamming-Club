@@ -266,7 +266,7 @@ export default function UserDashboard() {
                         <span className={`text-sm ${
                           ticket.isVerified ? 'text-green-600' : 'text-yellow-600'
                         }`}>
-                          {ticket.isVerified ? 'Verified' : 'Pending'}
+                          {ticket.isVerified ? 'Verified' : 'Booked'}
                         </span>
                       </div>
                     </div>
