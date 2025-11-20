@@ -15,6 +15,7 @@ interface Ticket {
   isVerified: boolean;
   verifiedAt?: string;
   qrCode?: string;
+  hasActiveSubscription?: boolean;
   user: {
     name: string;
     email: string;
@@ -36,6 +37,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState('');
   const [verificationFilter, setVerificationFilter] = useState<'all' | 'verified' | 'unverified'>('all');
+  const [showSubscribedOnly, setShowSubscribedOnly] = useState(false);
 
   useEffect(() => {
     fetchTickets();
@@ -43,7 +45,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
 
   useEffect(() => {
     filterTickets();
-  }, [tickets, searchTerm, selectedEvent, verificationFilter]);
+  }, [tickets, searchTerm, selectedEvent, verificationFilter, showSubscribedOnly]);
 
   const fetchTickets = async () => {
     try {
@@ -73,6 +75,11 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
       filtered = filtered.filter(ticket => ticket.isVerified);
     } else if (verificationFilter === 'unverified') {
       filtered = filtered.filter(ticket => !ticket.isVerified);
+    }
+
+    // Filter by subscription status
+    if (showSubscribedOnly) {
+      filtered = filtered.filter(ticket => ticket.hasActiveSubscription === true);
     }
 
     // Filter by search term
@@ -146,7 +153,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
           {/* Filters */}
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Filter Tickets</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
@@ -190,6 +197,20 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
                 </select>
               </div>
 
+              <div className="flex items-center">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showSubscribedOnly}
+                    onChange={(e) => setShowSubscribedOnly(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <span className="ml-2 text-sm font-medium text-gray-700">
+                    Subscribed Users Only
+                  </span>
+                </label>
+              </div>
+
               <div className="flex items-end">
                 <button
                   onClick={fetchTickets}
@@ -201,7 +222,7 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
             </div>
             
             {/* Active Filters Display */}
-            {(selectedEvent || verificationFilter !== 'all' || searchTerm) && (
+            {(selectedEvent || verificationFilter !== 'all' || searchTerm || showSubscribedOnly) && (
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="text-sm text-gray-600">Active filters:</span>
                 {selectedEvent && (
@@ -221,6 +242,17 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
                     <button
                       onClick={() => setVerificationFilter('all')}
                       className="ml-1 text-green-600 hover:text-green-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                )}
+                {showSubscribedOnly && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    Subscribed Users Only
+                    <button
+                      onClick={() => setShowSubscribedOnly(false)}
+                      className="ml-1 text-purple-600 hover:text-purple-800"
                     >
                       ×
                     </button>
@@ -274,8 +306,15 @@ export function GuestVerification({ onClose }: GuestVerificationProps) {
                           </div>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {ticket.user.name}
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm font-medium text-gray-900">
+                              {ticket.user.name}
+                            </div>
+                            {ticket.hasActiveSubscription && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                Subscribed
+                              </span>
+                            )}
                           </div>
                           <div className="text-sm text-gray-500">
                             {ticket.user.email}
