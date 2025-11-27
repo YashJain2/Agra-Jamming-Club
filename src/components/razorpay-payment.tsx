@@ -42,11 +42,12 @@ export default function RazorpayPayment({
   onPaymentError,
   isNewestEvent = false,
 }: RazorpayPaymentProps) {
-  // Also check by event title as fallback - check for both "baithak" and "filmi"
-  const shouldHideCount = isNewestEvent || 
-    eventTitle?.toLowerCase().includes('baithak') || 
-    eventTitle?.toLowerCase().includes('filmi');
   const { data: session } = useSession();
+  // Also check by event title as fallback - check for both "baithak" and "filmi"
+  // Calculate this after session to ensure it's evaluated correctly
+  const shouldHideCount = isNewestEvent || 
+    (eventTitle?.toLowerCase().includes('baithak') ?? false) || 
+    (eventTitle?.toLowerCase().includes('filmi') ?? false);
   const [quantity, setQuantity] = useState(1);
   const [specialRequests, setSpecialRequests] = useState('');
   const [isLoading, setIsLoading] = useState(false);
