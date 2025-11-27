@@ -157,10 +157,11 @@ export function EventBookingCard({ event, onBookTicket, className = '', isNewest
           </div>
         ) : (
           <img
-            src={event.imageUrl || '/raahein-event.jpg'}
+            src={(event.imageUrl || '/raahein-event.jpg').trim()}
             alt={event.title}
             className="w-full h-full object-cover"
             onError={(e) => {
+              console.error('Image failed to load:', event.imageUrl);
               e.currentTarget.src = `https://via.placeholder.com/400x300/6366f1/ffffff?text=${encodeURIComponent(event.title)}`;
             }}
           />
