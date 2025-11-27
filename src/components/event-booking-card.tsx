@@ -416,6 +416,7 @@ export function EventBookingCard({ event, onBookTicket, className = '', isNewest
                   price={event.price}
                   maxTickets={event.maxTickets}
                   soldTickets={event.soldTickets}
+                  isNewestEvent={isNewestEvent}
                   onPaymentSuccess={(ticket) => {
                     alert('Payment successful! Your tickets have been booked.');
                   }}

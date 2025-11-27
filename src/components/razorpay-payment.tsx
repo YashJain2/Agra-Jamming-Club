@@ -11,6 +11,7 @@ interface RazorpayPaymentProps {
   soldTickets: number;
   onPaymentSuccess?: (ticket: any) => void;
   onPaymentError?: (error: string) => void;
+  isNewestEvent?: boolean; // Hide ticket count for newest event
 }
 
 interface OrderData {
@@ -39,6 +40,7 @@ export default function RazorpayPayment({
   soldTickets,
   onPaymentSuccess,
   onPaymentError,
+  isNewestEvent = false,
 }: RazorpayPaymentProps) {
   const { data: session } = useSession();
   const [quantity, setQuantity] = useState(1);
@@ -332,9 +334,11 @@ export default function RazorpayPayment({
             ))}
           </select>
         )}
-        <p className={`text-sm mt-1 ${availableTickets === 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
-          {availableTickets === 0 ? 'This event is sold out' : `${availableTickets} tickets available`}
-        </p>
+        {!isNewestEvent && (
+          <p className={`text-sm mt-1 ${availableTickets === 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+            {availableTickets === 0 ? 'This event is sold out' : `${availableTickets} tickets available`}
+          </p>
+        )}
       </div>
 
       {/* Special Requests */}
