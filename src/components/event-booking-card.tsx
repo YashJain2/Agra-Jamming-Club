@@ -49,9 +49,10 @@ interface EventBookingCardProps {
   event: Event;
   onBookTicket: (eventId: string, quantity: number, isFreeAccess: boolean) => Promise<void>;
   className?: string;
+  isNewestEvent?: boolean; // Hide seats left for newest event
 }
 
-export function EventBookingCard({ event, onBookTicket, className = '' }: EventBookingCardProps) {
+export function EventBookingCard({ event, onBookTicket, className = '', isNewestEvent = false }: EventBookingCardProps) {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [eventPricing, setEventPricing] = useState<EventPricing | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -207,8 +208,8 @@ export function EventBookingCard({ event, onBookTicket, className = '' }: EventB
           </div>
         </div>
 
-        {/* Attractive Ticket Counter */}
-        {!isPastEvent && (
+        {/* Attractive Ticket Counter - Hidden for newest event */}
+        {!isPastEvent && !isNewestEvent && (
           <div className="mb-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 border border-pink-200">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center">

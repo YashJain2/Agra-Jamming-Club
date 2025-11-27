@@ -137,11 +137,12 @@ export default function EventsPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {events.map((event) => (
+              {events.map((event, index) => (
                 <EventBookingCard
                   key={event.id}
                   event={event}
                   onBookTicket={handleBookTicket}
+                  isNewestEvent={index === 0} // First event is the newest (sorted by createdAt desc)
                 />
               ))}
             </div>
