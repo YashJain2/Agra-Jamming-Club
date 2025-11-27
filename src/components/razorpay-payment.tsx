@@ -318,9 +318,11 @@ export default function RazorpayPayment({
       
       {/* Quantity Selection */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Number of Tickets
-        </label>
+        {!shouldHideCount && (
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Number of Tickets
+          </label>
+        )}
         {availableTickets === 0 ? (
           <div className="w-full p-2 border-2 border-red-300 rounded-md bg-red-50 text-red-700 font-semibold text-center">
             SOLD OUT
