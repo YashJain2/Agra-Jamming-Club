@@ -29,13 +29,13 @@ async function updateEventImage() {
 
     console.log(`✅ Found event: ${event.title} (ID: ${event.id})`);
     console.log(`   Current image: ${event.imageUrl || 'None'}`);
-    console.log(`   New image: /baithak.jpg`);
+    console.log(`   New image: /baithak.jpeg`);
 
     // Update the event with the image URL
     const updatedEvent = await prisma.event.update({
       where: { id: event.id },
       data: {
-        imageUrl: '/baithak.jpg',
+        imageUrl: '/baithak.jpeg',
       },
     });
 
