@@ -161,8 +161,15 @@ export function EventBookingCard({ event, onBookTicket, className = '', isNewest
             alt={event.title}
             className="w-full h-full object-cover"
             onError={(e) => {
-              console.error('Image failed to load:', event.imageUrl);
-              e.currentTarget.src = `https://via.placeholder.com/400x300/6366f1/ffffff?text=${encodeURIComponent(event.title)}`;
+              const img = e.currentTarget;
+              // Prevent infinite loop - only set fallback once
+              if (!img.dataset.fallbackSet) {
+                img.dataset.fallbackSet = 'true';
+                const fallbackUrl = `https://via.placeholder.com/400x300/6366f1/ffffff?text=${encodeURIComponent(event.title)}`;
+                if (img.src !== fallbackUrl) {
+                  img.src = fallbackUrl;
+                }
+              }
             }}
           />
         )}
