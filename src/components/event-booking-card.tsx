@@ -148,7 +148,9 @@ export function EventBookingCard({ event, onBookTicket, className = '', isNewest
   return (
     <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>
       {/* Event Image */}
-      <div className="h-64 bg-gray-200 relative overflow-hidden">
+      <div className={`bg-gray-200 relative overflow-hidden ${
+        event.imageUrl?.includes('event-3') ? 'aspect-[4/5]' : 'h-64'
+      }`}>
         {event.imageUrl && event.imageUrl.includes('photos.google.com') ? (
           <div className="w-full h-full bg-yellow-50 border-2 border-yellow-300 flex items-center justify-center p-4">
             <p className="text-sm text-yellow-800 text-center">
@@ -159,7 +161,9 @@ export function EventBookingCard({ event, onBookTicket, className = '', isNewest
           <img
             src={(event.imageUrl || '/raahein-event.jpg').trim()}
             alt={event.title}
-            className="w-full h-full object-contain"
+            className={`w-full h-full ${
+              event.imageUrl?.includes('event-3') ? 'object-contain' : 'object-cover'
+            }`}
             onError={(e) => {
               const img = e.currentTarget;
               // Prevent infinite loop - only set fallback once and stop error propagation
