@@ -21,9 +21,9 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-async function syncMissingPayments() {
+async function findMissingPayments() {
   try {
-    console.log('🔍 Starting payment sync from Razorpay...\n');
+    console.log('🔍 Scanning for missing payments from Razorpay...\n');
 
     // Get all payments from Razorpay (last 100 payments)
     const payments = await razorpay.payments.all({
@@ -32,15 +32,12 @@ async function syncMissingPayments() {
 
     console.log(`📊 Found ${payments.items.length} payments in Razorpay\n`);
 
-    let synced = 0;
-    let skipped = 0;
-    let errors = 0;
+    const missingPayments = [];
 
     for (const razorpayPayment of payments.items) {
       try {
         // Skip if payment is not captured
         if (razorpayPayment.status !== 'captured') {
-          skipped++;
           continue;
         }
 
@@ -52,15 +49,12 @@ async function syncMissingPayments() {
         });
 
         if (existingPayment) {
-          skipped++;
           continue;
         }
 
         // Get order details
         const orderId = razorpayPayment.order_id;
         if (!orderId) {
-          console.log(`⚠️  Payment ${razorpayPayment.id} has no order_id, skipping`);
-          skipped++;
           continue;
         }
 
@@ -68,8 +62,6 @@ async function syncMissingPayments() {
         try {
           order = await razorpay.orders.fetch(orderId);
         } catch (error) {
-          console.log(`⚠️  Could not fetch order ${orderId} for payment ${razorpayPayment.id}`);
-          skipped++;
           continue;
         }
 
@@ -78,8 +70,6 @@ async function syncMissingPayments() {
         const eventId = orderNotes.eventId;
 
         if (!eventId) {
-          console.log(`⚠️  Order ${orderId} has no eventId in notes, skipping payment ${razorpayPayment.id}`);
-          skipped++;
           continue;
         }
 
@@ -89,70 +79,110 @@ async function syncMissingPayments() {
         });
 
         if (!event) {
-          console.log(`⚠️  Event ${eventId} not found for payment ${razorpayPayment.id}`);
-          skipped++;
           continue;
         }
 
-        // Get or create user
+        // Get customer details
         const customerEmail = razorpayPayment.email || orderNotes.guestEmail;
         if (!customerEmail) {
-          console.log(`⚠️  No email found for payment ${razorpayPayment.id}`);
-          skipped++;
           continue;
         }
 
+        const customerName = orderNotes.guestName || razorpayPayment.notes?.name || 'Guest';
+        const customerPhone = razorpayPayment.contact || orderNotes.guestPhone || '';
+        const amountInRupees = razorpayPayment.amount / 100;
+        const quantity = Math.round(amountInRupees / event.price) || 1;
+
+        missingPayments.push({
+          paymentId: razorpayPayment.id,
+          orderId: orderId,
+          eventId: eventId,
+          eventTitle: event.title,
+          customerEmail: customerEmail,
+          customerName: customerName,
+          customerPhone: customerPhone,
+          amount: amountInRupees,
+          quantity: quantity,
+          method: razorpayPayment.method || 'UPI',
+          createdAt: razorpayPayment.created_at,
+        });
+      } catch (error) {
+        // Skip errors during scanning
+      }
+    }
+
+    return missingPayments;
+  } catch (error) {
+    console.error('❌ Fatal error:', error);
+    return [];
+  }
+}
+
+async function syncMissingPayments(missingPayments) {
+  try {
+    console.log(`\n🔄 Syncing ${missingPayments.length} missing payments...\n`);
+
+    let synced = 0;
+    let errors = 0;
+
+    for (const paymentData of missingPayments) {
+      try {
+        // Get or create user
         let user = await prisma.user.findFirst({
-          where: { email: customerEmail },
+          where: { email: paymentData.customerEmail },
         });
 
         if (!user) {
-          const customerName = orderNotes.guestName || razorpayPayment.notes?.name || 'Guest';
-          const customerPhone = razorpayPayment.contact || orderNotes.guestPhone || '';
-          
           user = await prisma.user.create({
             data: {
-              email: customerEmail,
-              name: customerName,
-              phone: customerPhone,
+              email: paymentData.customerEmail,
+              name: paymentData.customerName,
+              phone: paymentData.customerPhone,
               role: 'USER',
               password: null,
             },
           });
-          console.log(`   ✅ Created user: ${customerEmail}`);
+          console.log(`   ✅ Created user: ${paymentData.customerEmail}`);
         }
 
-        // Calculate quantity
-        const amountInRupees = razorpayPayment.amount / 100;
-        const quantity = Math.round(amountInRupees / event.price) || 1;
+        // Find event
+        const event = await prisma.event.findUnique({
+          where: { id: paymentData.eventId },
+        });
+
+        if (!event) {
+          console.log(`⚠️  Event ${paymentData.eventId} not found for payment ${paymentData.paymentId}`);
+          errors++;
+          continue;
+        }
 
         // Create ticket and payment
-        const result = await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx) => {
           const ticket = await tx.ticket.create({
             data: {
               userId: user.id,
               eventId: event.id,
-              quantity: quantity,
-              totalPrice: amountInRupees,
+              quantity: paymentData.quantity,
+              totalPrice: paymentData.amount,
               status: 'CONFIRMED',
             },
           });
 
-          const payment = await tx.payment.create({
+          await tx.payment.create({
             data: {
               userId: user.id,
               ticketId: ticket.id,
-              amount: amountInRupees,
+              amount: paymentData.amount,
               currency: 'INR',
               status: 'COMPLETED',
-              paymentMethod: razorpayPayment.method || 'UPI',
+              paymentMethod: paymentData.method,
               gateway: 'RAZORPAY',
-              gatewayOrderId: orderId,
-              gatewayTxnId: razorpayPayment.id,
+              gatewayOrderId: paymentData.orderId,
+              gatewayTxnId: paymentData.paymentId,
               gatewayResponse: {
-                paymentId: razorpayPayment.id,
-                orderId: orderId,
-                amount: amountInRupees,
+                paymentId: paymentData.paymentId,
+                orderId: paymentData.orderId,
+                amount: paymentData.amount,
               },
             },
           });
@@ -161,27 +191,24 @@ async function syncMissingPayments() {
             where: { id: event.id },
             data: {
               soldTickets: {
-                increment: quantity,
+                increment: paymentData.quantity,
               },
             },
           });
-
-          return { ticket, payment };
         });
 
-        console.log(`✅ Synced: ${razorpayPayment.id} - ${customerEmail} (${quantity} tickets, ₹${amountInRupees})`);
+        console.log(`✅ Synced: ${paymentData.paymentId} - ${paymentData.customerEmail} (${paymentData.quantity} tickets, ₹${paymentData.amount})`);
         synced++;
       } catch (error) {
-        console.error(`❌ Error syncing payment ${razorpayPayment.id}:`, error.message);
+        console.error(`❌ Error syncing payment ${paymentData.paymentId}:`, error.message);
         errors++;
       }
     }
 
     console.log(`\n📊 Summary:`);
     console.log(`   Synced: ${synced}`);
-    console.log(`   Skipped: ${skipped}`);
     console.log(`   Errors: ${errors}`);
-    console.log(`   Total: ${payments.items.length}`);
+    console.log(`   Total: ${missingPayments.length}`);
 
   } catch (error) {
     console.error('❌ Fatal error:', error);
@@ -190,5 +217,50 @@ async function syncMissingPayments() {
   }
 }
 
-syncMissingPayments();
+async function main() {
+  const missingPayments = await findMissingPayments();
+
+  if (missingPayments.length === 0) {
+    console.log('✅ No missing payments found! All payments are synced.\n');
+    await prisma.$disconnect();
+    return;
+  }
+
+  console.log(`\n📋 Found ${missingPayments.length} missing payment(s):\n`);
+  console.log('─'.repeat(100));
+  
+  missingPayments.forEach((payment, index) => {
+    console.log(`\n${index + 1}. Payment ID: ${payment.paymentId}`);
+    console.log(`   Order ID: ${payment.orderId}`);
+    console.log(`   Event: ${payment.eventTitle}`);
+    console.log(`   Customer: ${payment.customerName} (${payment.customerEmail})`);
+    console.log(`   Phone: ${payment.customerPhone || 'N/A'}`);
+    console.log(`   Amount: ₹${payment.amount}`);
+    console.log(`   Quantity: ${payment.quantity} ticket(s)`);
+    console.log(`   Method: ${payment.method}`);
+    console.log(`   Date: ${new Date(payment.createdAt * 1000).toLocaleString()}`);
+  });
+
+  console.log('\n' + '─'.repeat(100));
+  console.log(`\n📊 Total: ${missingPayments.length} missing payment(s)\n`);
+
+  // Use readline for confirmation
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  rl.question('Do you want to add these payments to the database? (yes/no): ', async (answer) => {
+    if (answer.toLowerCase() === 'yes' || answer.toLowerCase() === 'y') {
+      await syncMissingPayments(missingPayments);
+    } else {
+      console.log('\n❌ Sync cancelled by user.\n');
+    }
+    rl.close();
+    await prisma.$disconnect();
+  });
+}
+
+main();
 
