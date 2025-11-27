@@ -162,13 +162,11 @@ export function EventBookingCard({ event, onBookTicket, className = '', isNewest
             className="w-full h-full object-cover"
             onError={(e) => {
               const img = e.currentTarget;
-              // Prevent infinite loop - only set fallback once
+              // Prevent infinite loop - only set fallback once and stop error propagation
               if (!img.dataset.fallbackSet) {
                 img.dataset.fallbackSet = 'true';
-                const fallbackUrl = `https://via.placeholder.com/400x300/6366f1/ffffff?text=${encodeURIComponent(event.title)}`;
-                if (img.src !== fallbackUrl) {
-                  img.src = fallbackUrl;
-                }
+                img.onerror = null; // Remove error handler to prevent loop
+                img.src = `https://via.placeholder.com/400x300/6366f1/ffffff?text=${encodeURIComponent(event.title || 'Event')}`;
               }
             }}
           />
