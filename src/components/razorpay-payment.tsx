@@ -42,6 +42,8 @@ export default function RazorpayPayment({
   onPaymentError,
   isNewestEvent = false,
 }: RazorpayPaymentProps) {
+  // Also check by event title as fallback
+  const shouldHideCount = isNewestEvent || eventTitle?.toLowerCase().includes('baithak');
   const { data: session } = useSession();
   const [quantity, setQuantity] = useState(1);
   const [specialRequests, setSpecialRequests] = useState('');
@@ -334,7 +336,7 @@ export default function RazorpayPayment({
             ))}
           </select>
         )}
-        {!isNewestEvent && (
+        {!shouldHideCount && (
           <p className={`text-sm mt-1 ${availableTickets === 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
             {availableTickets === 0 ? 'This event is sold out' : `${availableTickets} tickets available`}
           </p>
